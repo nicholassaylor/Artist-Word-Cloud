@@ -1,10 +1,15 @@
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup
+from typing import List
 import requests
 import re
 
 
-SECTION_RE = re.compile(r'\[[^\[\]]*\]')
-HTML_TAG_RE = re.compile(r'(\<[^>]*\>)+')
+# Constants
+SECTION_RE = re.compile(r'\[[^\[\]]*]')
+HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
+
+# Globals
+song_list: List[str]
 
 
 def main():
@@ -14,7 +19,7 @@ def main():
     #url = 'https://genius.com/Nwa-fuck-tha-police-lyrics'
     url = 'https://genius.com/Eminem-lose-yourself-lyrics'
     response = requests.get(url)
-    soup = bs(response.text, 'html.parser')
+    soup = BeautifulSoup(response.text, 'html.parser')
     lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
     for item in lyrics_elements:
         print(remove_fluff(item.decode_contents()))
