@@ -3,8 +3,8 @@ import requests
 import re
 
 
-section_re = re.compile(r'\[[^\[\]]*\]')
-html_tag_re = re.compile(r'(\<[^>]*\>)+')
+SECTION_RE = re.compile(r'\[[^\[\]]*\]')
+HTML_TAG_RE = re.compile(r'(\<[^>]*\>)+')
 
 
 def main():
@@ -21,8 +21,8 @@ def main():
 
 def remove_fluff(element):
     """Removes html tags, section names, and additional non-lyric text from lyrics"""
-    element = re.sub(html_tag_re, ' ', element)
-    return re.sub(section_re, '', element)
+    element = re.sub(HTML_TAG_RE, ' ', element)
+    return re.sub(SECTION_RE, '', element)
 
 
 if __name__ == "__main__":
