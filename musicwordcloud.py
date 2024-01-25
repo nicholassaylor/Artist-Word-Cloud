@@ -1,7 +1,9 @@
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, ResultSet
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import List
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib.pyplot as plt
 import time
 import re
 import requests
@@ -22,12 +24,29 @@ def main():
     global artist
     artist = input("Enter artist name: ")
     build_song_links(build_artist_page())
+    data_set = ""
+    stopwords = set(STOPWORDS)
+    print("Processing lyrics...")
     for url in song_list:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
         lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
+        test: ResultSet
         for item in lyrics_elements:
-            print(remove_fluff(item.decode_contents()))
+            portion = remove_fluff(item.decode_contents())
+            tokens = portion.split()
+            for i in range(len(tokens)):
+                tokens[i] = tokens[i].lower()
+            data_set += " ".join(tokens) + " "
+        print(f'Processed {song_list.index(url)} of {len(song_list)} songs')
+    print("Generating word cloud... (This may take a while if you have a large library of songs).")
+    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=stopwords,
+                          min_font_size=8, max_words=125, relative_scaling=0.7).generate(data_set)
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
 
 
 def remove_fluff(element) -> str:
@@ -58,9 +77,10 @@ def build_song_links(artist_page: str) -> None:
         "return Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight,"
         " document.documentElement.scrollHeight, document.documentElement.offsetHeight);")
     # Scroll down until no new HTML is revealed
+    print("Determining song library...")
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)
+        time.sleep(1)
         # Get the updated page height
         updated_page_height = driver.execute_script(
             "return Math.max(document.body.scrollHeight, document.body.offsetHeight, "
@@ -76,7 +96,7 @@ def build_song_links(artist_page: str) -> None:
     response = list(dict.fromkeys([href for href in response if link_stub.lower() in href.lower()]))
     song_list = response
     driver.quit()
-    print(f'Finished scraping! Found {len(song_list)} songs!')
+    print(f'Finished scraping, found {len(song_list)} songs!')
 
 
 if __name__ == "__main__":
