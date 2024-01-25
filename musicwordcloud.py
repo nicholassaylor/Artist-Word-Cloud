@@ -16,10 +16,6 @@ CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
 global artist
 global song_list
 song_list: List[str]
-global options
-options = webdriver.FirefoxOptions()
-options.add_argument('--headless')
-options.add_argument('--disable-gpu')  # Disable GPU acceleration to avoid some issues
 
 
 def main():
@@ -52,7 +48,10 @@ def build_song_links(artist_page: str) -> None:
     global artist
     global song_list
     print('Starting browser...')
-    driver = webdriver.Firefox()
+    options = webdriver.FirefoxOptions()
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')  # Disable GPU acceleration to avoid some issues
+    driver = webdriver.Firefox(options=options)
     driver.get(artist_page)
     # Get the initial page height
     initial_page_height = driver.execute_script(
