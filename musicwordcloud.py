@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup, ResultSet
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import List
@@ -31,12 +31,9 @@ def main():
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
         lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
-        test: ResultSet
         for item in lyrics_elements:
-            portion = remove_fluff(item.decode_contents())
+            portion = remove_fluff(item.decode_contents().lower())
             tokens = portion.split()
-            for i in range(len(tokens)):
-                tokens[i] = tokens[i].lower()
             data_set += " ".join(tokens) + " "
         print(f'Processed {song_list.index(url)} of {len(song_list)} songs')
     print("Generating word cloud... (This may take a while if you have a large library of songs).")
