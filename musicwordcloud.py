@@ -4,6 +4,8 @@ from selenium.webdriver.common.by import By
 from typing import List
 from wordcloud import WordCloud, STOPWORDS
 from nltk.corpus import stopwords
+from multiprocessing import Pool, freeze_support
+import multiprocessing
 import nltk
 import matplotlib.pyplot as plt
 import time
@@ -22,36 +24,6 @@ LINK_CLASS = "ListItem__Link-sc-122yj9e-1"
 global artist
 global song_list
 song_list: List[str]
-
-
-def main():
-    global artist
-    global song_list
-    song_list = []
-    artist = input("Enter artist name: ")
-    build_song_links(build_artist_page())
-    data_set = ""
-    # Check if stopwords are downloaded
-    try:
-        nltk.data.find('corpora/stopwords.zip')
-    except LookupError:
-        # Download stopwords if not found
-        print("Downloading stopwords...")
-        nltk.download('stopwords')
-    combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
-    print("Processing lyrics...")
-    #TODO: Speed up lyrics processing
-    for url in song_list:
-        data_set += process_lyrics(url)
-        print(f'Processed {song_list.index(url) + 1} of {len(song_list)} songs')
-    print("Generating word cloud...")
-    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=combined_stopwords,
-                          min_font_size=8, max_words=125, relative_scaling=0.7).generate(data_set)
-    plt.figure(figsize=(8, 8), facecolor=None)
-    plt.imshow(wordcloud)
-    plt.axis("off")
-    plt.tight_layout(pad=0)
-    plt.show()
 
 
 def remove_fluff(element) -> str:
@@ -138,8 +110,45 @@ def process_lyrics(url: str) -> str:
         remove_fluff(item.decode_contents().lower())
         for item in lyrics_elements
     ]
+
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
 
 
-if __name__ == "__main__":
-    main()
+def update_progress(_):
+    # Increment the shared counter
+    with total_completed.get_lock():
+        total_completed.value += 1
+        print(f'Processed {total_completed.value} out of {len(song_list)} songs')
+
+
+if __name__ == '__main__':
+    freeze_support()
+    #  Tracks how many lyrics are done processing
+    total_completed = multiprocessing.Value('i', 0)
+    song_list = []
+    artist = input("Enter artist name: ")
+    build_song_links(build_artist_page())
+    data_set = ""
+    # Check if stopwords are downloaded
+    try:
+        nltk.data.find('corpora/stopwords.zip')
+    except LookupError:
+        # Download stopwords if not found
+        print("Downloading stopwords...")
+        nltk.download('stopwords')
+    combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
+    print("Processing lyrics...")
+    # Multiprocess lyrics
+    with Pool() as pool:
+        data_set = pool.map(process_lyrics, song_list)
+        for _ in data_set:
+            update_progress(_)
+    data_set = " ".join(data_set)
+    print("Generating word cloud...")
+    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=combined_stopwords,
+                          min_font_size=8, max_words=125, relative_scaling=0.7).generate(data_set)
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
