@@ -13,6 +13,7 @@ import requests
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
 HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
 CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
+MAX_COLLECTION_RETRIES = 10
 
 # Globals
 global artist
@@ -74,7 +75,7 @@ def build_song_links(artist_page: str) -> None:
     song_count = driver.find_element(By.CLASS_NAME, "ListSectiondesktop__Summary-sc-53xokv-6.dSgVld")
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
-    #TODO: Add safeguard for scraping taking too long (stuck)
+    previous_count, trapped_count = 0, 0
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
@@ -85,6 +86,17 @@ def build_song_links(artist_page: str) -> None:
         song_list = list(dict.fromkeys([href for href in song_list if link_search in href.lower()]))
         if len(song_list) == song_count:
             break  # All songs found, including the 3 featured song links
+        # Check to make sure that we are actually getting new songs each attempt
+        if previous_count == len(song_list):
+            trapped_count += 1
+            if trapped_count == MAX_COLLECTION_RETRIES:
+                # If attempts exceeds max tries, abort scraping and return with current collection of links
+                print(f'Failed collection too many times; continuing with first {len(song_list)} songs')
+                break
+        else:
+            # No need to update these variables if we failed a collection cycle
+            trapped_count = 0
+            previous_count = len(song_list)
         print(f'Collected {len(song_list)} out of {song_count} song links')
     driver.quit()
     print(f'Finished scraping, found {len(song_list)} songs!')
