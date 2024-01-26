@@ -18,7 +18,6 @@ HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
 CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
 MAX_COLLECTION_RETRIES = 5
 LINK_CLASS = "ListItem__Link-sc-122yj9e-1"
-# .klWOzg"
 
 # Globals
 global artist
@@ -65,6 +64,9 @@ def build_song_links(artist_page: str) -> None:
     # Isolate number in text and cast to integer
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
+    if song_count > 500:
+        print(f'Warning: Large music libraries may fail to load in their entirety. The program will attempt to'
+              f' gather as many lyrics to process as possible.')
     trapped_count = 0
     last_count = 0
     while True:
@@ -114,13 +116,6 @@ def process_lyrics(url: str) -> str:
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
 
 
-def update_progress(_):
-    # Increment the shared counter
-    with total_completed.get_lock():
-        total_completed.value += 1
-        print(f'Processed {total_completed.value} out of {len(song_list)} songs')
-
-
 if __name__ == '__main__':
     freeze_support()
     #  Tracks how many lyrics are done processing
@@ -138,11 +133,12 @@ if __name__ == '__main__':
         nltk.download('stopwords')
     combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
     print("Processing lyrics...")
+    if len(song_list) > 250:
+        print("This may take a while...")
     # Multiprocess lyrics
     with Pool() as pool:
         data_set = pool.map(process_lyrics, song_list)
-        for _ in data_set:
-            update_progress(_)
+        pool.close()
     data_set = " ".join(data_set)
     print("Generating word cloud...")
     wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=combined_stopwords,
