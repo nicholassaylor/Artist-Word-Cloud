@@ -42,13 +42,7 @@ def main():
     print("Processing lyrics...")
     #TODO: Speed up lyrics processing
     for url in song_list:
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
-        for item in lyrics_elements:
-            portion = remove_fluff(item.decode_contents().lower())
-            # Normalize spacing
-            data_set += " " + re.sub(r'\s+', ' ', portion) + " "
+        data_set += process_lyrics(url)
         print(f'Processed {song_list.index(url) + 1} of {len(song_list)} songs')
     print("Generating word cloud...")
     wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=combined_stopwords,
@@ -130,6 +124,21 @@ def build_song_links(artist_page: str) -> None:
         last_count = current_count
     driver.quit()
     print(f'Finished scraping, found {len(song_list)} songs!')
+
+
+def process_lyrics(url: str) -> str:
+    """
+    Processes the lyrics for a particular webpage and returns them as a nicely formatted string
+    This is segmented off in order to support multiprocessing in the future
+    """
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
+    portions = [
+        remove_fluff(item.decode_contents().lower())
+        for item in lyrics_elements
+    ]
+    return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
 
 
 if __name__ == "__main__":
