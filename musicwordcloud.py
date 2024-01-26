@@ -1,8 +1,11 @@
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import List
 from wordcloud import WordCloud, STOPWORDS
+from nltk.corpus import stopwords
+import nltk
 import matplotlib.pyplot as plt
 import time
 import re
@@ -26,8 +29,14 @@ def main():
     artist = input("Enter artist name: ")
     build_song_links(build_artist_page())
     data_set = ""
-    #TODO: Use NLTK stopwords as well?
-    stopwords = set(STOPWORDS)
+    # Check if stopwords are downloaded
+    try:
+        nltk.data.find('corpora/stopwords.zip')
+    except LookupError:
+        # Download stopwords if not found
+        print("Downloading stopwords...")
+        nltk.download('stopwords')
+    combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
     print("Processing lyrics...")
     for url in song_list:
         response = requests.get(url)
@@ -39,7 +48,7 @@ def main():
             data_set += " " + re.sub(r'\s+', ' ', portion) + " "
         print(f'Processed {song_list.index(url) + 1} of {len(song_list)} songs')
     print("Generating word cloud...")
-    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=stopwords,
+    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=combined_stopwords,
                           min_font_size=8, max_words=125, relative_scaling=0.7).generate(data_set)
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(wordcloud)
