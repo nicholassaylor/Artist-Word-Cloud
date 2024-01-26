@@ -35,6 +35,7 @@ def main():
         lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
         for item in lyrics_elements:
             portion = remove_fluff(item.decode_contents().lower())
+            # Normalize spacing
             data_set += " " + re.sub(r'\s+', ' ', portion) + " "
         print(f'Processed {song_list.index(url) + 1} of {len(song_list)} songs')
     print("Generating word cloud...")
@@ -55,13 +56,20 @@ def remove_fluff(element) -> str:
 
 
 def build_artist_page() -> str:
+    """Returns a constructed link of an artist's Genius page"""
     global artist
     base_url = "https://genius.com/artists/"
+    # Non-alphanumeric characters are excluded from Genius links, they are effectively replaced with ''
+    # Spaces are replaced with '-'
     constructed_url = re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(" ", "-").lower())
     return base_url + constructed_url + "/songs"
 
 
 def build_song_links(artist_page: str) -> None:
+    """
+    Compiles a list of song links associated to a particular artist and saves it to song_list
+    Pulls data from Genius's songs page using a Selenium webdriver
+    """
     global artist
     global song_list
     print('Starting browser...')
@@ -74,7 +82,9 @@ def build_song_links(artist_page: str) -> None:
     print("Determining song library...")
     # Allow page time to load
     time.sleep(1)
+    # The song count can be found in the summary of the songs page
     song_count = driver.find_element(By.CLASS_NAME, "ListSectiondesktop__Summary-sc-53xokv-6.dSgVld")
+    # Isolate number in text and cast to integer
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
     previous_count, trapped_count = 0, 0
