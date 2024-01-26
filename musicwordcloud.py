@@ -35,10 +35,9 @@ def main():
         lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
         for item in lyrics_elements:
             portion = remove_fluff(item.decode_contents().lower())
-            tokens = portion.split()
-            data_set += " ".join(tokens) + " "
-        print(f'Processed {song_list.index(url)} of {len(song_list)} songs')
-    print("Generating word cloud... (This may take a while if you have a large library of songs).")
+            data_set += " " + re.sub(r'\s+', ' ', portion) + " "
+        print(f'Processed {song_list.index(url) + 1} of {len(song_list)} songs')
+    print("Generating word cloud...")
     wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=stopwords,
                           min_font_size=8, max_words=125, relative_scaling=0.7).generate(data_set)
     plt.figure(figsize=(8, 8), facecolor=None)
@@ -63,15 +62,18 @@ def build_artist_page() -> str:
 
 
 def build_song_links(artist_page: str) -> None:
+    global artist
     global song_list
-    link_search = "-lyrics"
     print('Starting browser...')
+    # Configure settings for webdriver
     options = webdriver.FirefoxOptions()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')  # Disable GPU acceleration to avoid some issues
     driver = webdriver.Firefox(options=options)
     driver.get(artist_page)
     print("Determining song library...")
+    # Allow page time to load
+    time.sleep(1)
     song_count = driver.find_element(By.CLASS_NAME, "ListSectiondesktop__Summary-sc-53xokv-6.dSgVld")
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
@@ -79,13 +81,13 @@ def build_song_links(artist_page: str) -> None:
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
-        # Get the updated song link count
-        song_list = [link.get_attribute('href') for link in driver.find_elements(By.TAG_NAME, 'a')
+        # Find elements that are contained in the infinite scroll list elements and extract the links
+        # This prevents false positives like the featured songs on the page or popular songs in the footer
+        song_list = [link.get_attribute('href') for link in
+                     driver.find_elements(By.CLASS_NAME, "ListItem__Link-sc-122yj9e-1.klWOzg")
                      if link is not None and link.get_attribute('href') is not None]
-        # Extracts only song link while excluding duplicates (3 featured songs at top of page)
-        song_list = list(dict.fromkeys([href for href in song_list if link_search in href.lower()]))
         if len(song_list) == song_count:
-            break  # All songs found, including the 3 featured song links
+            break  # All songs found
         # Check to make sure that we are actually getting new songs each attempt
         if previous_count == len(song_list):
             trapped_count += 1
