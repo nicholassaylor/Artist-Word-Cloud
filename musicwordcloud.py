@@ -5,7 +5,6 @@ from typing import List
 from wordcloud import WordCloud, STOPWORDS
 from nltk.corpus import stopwords
 from multiprocessing import Pool, freeze_support
-import multiprocessing
 import nltk
 import matplotlib.pyplot as plt
 import time
@@ -118,8 +117,6 @@ def process_lyrics(url: str) -> str:
 
 if __name__ == '__main__':
     freeze_support()
-    #  Tracks how many lyrics are done processing
-    total_completed = multiprocessing.Value('i', 0)
     song_list = []
     artist = input("Enter artist name: ")
     build_song_links(build_artist_page())
