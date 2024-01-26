@@ -25,6 +25,7 @@ def main():
     artist = input("Enter artist name: ")
     build_song_links(build_artist_page())
     data_set = ""
+    #TODO: Use NLTK stopwords as well?
     stopwords = set(STOPWORDS)
     print("Processing lyrics...")
     for url in song_list:
@@ -63,34 +64,29 @@ def build_artist_page() -> str:
 def build_song_links(artist_page: str) -> None:
     global artist
     global song_list
+    link_stub = "https://genius.com/" + re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(" ", "-").lower())
     print('Starting browser...')
     options = webdriver.FirefoxOptions()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')  # Disable GPU acceleration to avoid some issues
     driver = webdriver.Firefox(options=options)
     driver.get(artist_page)
-    # Get the initial page height
-    initial_page_height = driver.execute_script(
-        "return Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight,"
-        " document.documentElement.scrollHeight, document.documentElement.offsetHeight);")
-    # Scroll down until no new HTML is revealed
     print("Determining song library...")
+    song_count = driver.find_element(By.CLASS_NAME, "ListSectiondesktop__Summary-sc-53xokv-6.dSgVld")
+    song_count = int(re.sub("[^0-9]", "", song_count.text))
+    print(f'{song_count} songs listed, collecting links...')
+    #TODO: Add safeguard for scraping taking too long (stuck)
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
-        # Get the updated page height
-        updated_page_height = driver.execute_script(
-            "return Math.max(document.body.scrollHeight, document.body.offsetHeight, "
-            "document.documentElement.clientHeight, document.documentElement.scrollHeight, "
-            "document.documentElement.offsetHeight);")
-        if updated_page_height == initial_page_height:
-            break  # No new content loaded, exit the loop
-        initial_page_height = updated_page_height
-    link_stub = "https://genius.com/" + re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(" ", "-").lower())
-    response = [link.get_attribute('href') for link in driver.find_elements(By.TAG_NAME, 'a')
-                if link is not None and link.get_attribute('href') is not None]
-    # Extracts only song link while excluding duplicates (3 featured songs at top of page)
-    response = list(dict.fromkeys([href for href in response if link_stub.lower() in href.lower()]))
+        # Get the updated song link count
+        response = [link.get_attribute('href') for link in driver.find_elements(By.TAG_NAME, 'a')
+                    if link is not None and link.get_attribute('href') is not None]
+        # Extracts only song link while excluding duplicates (3 featured songs at top of page)
+        response = list(dict.fromkeys([href for href in response if link_stub.lower() in href.lower()]))
+        if len(response) == song_count:
+            break  # All songs found, including the 3 featured song links
+        print(f'Collected {len(response)} out of {song_count} song links')
     song_list = response
     driver.quit()
     print(f'Finished scraping, found {len(song_list)} songs!')
