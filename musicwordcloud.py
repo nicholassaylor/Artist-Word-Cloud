@@ -1,4 +1,3 @@
-
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,12 +10,13 @@ import time
 import re
 import requests
 
-
 # Constants
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
 HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
 CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
-MAX_COLLECTION_RETRIES = 10
+MAX_COLLECTION_RETRIES = 5
+LINK_CLASS = "ListItem__Link-sc-122yj9e-1"
+# .klWOzg"
 
 # Globals
 global artist
@@ -26,6 +26,8 @@ song_list: List[str]
 
 def main():
     global artist
+    global song_list
+    song_list = []
     artist = input("Enter artist name: ")
     build_song_links(build_artist_page())
     data_set = ""
@@ -38,6 +40,7 @@ def main():
         nltk.download('stopwords')
     combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
     print("Processing lyrics...")
+    #TODO: Speed up lyrics processing
     for url in song_list:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -96,29 +99,35 @@ def build_song_links(artist_page: str) -> None:
     # Isolate number in text and cast to integer
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
-    previous_count, trapped_count = 0, 0
+    trapped_count = 0
+    last_count = 0
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
-        # Find elements that are contained in the infinite scroll list elements and extract the links
-        # This prevents false positives like the featured songs on the page or popular songs in the footer
-        song_list = [link.get_attribute('href') for link in
-                     driver.find_elements(By.CLASS_NAME, "ListItem__Link-sc-122yj9e-1.klWOzg")
-                     if link is not None and link.get_attribute('href') is not None]
-        if len(song_list) == song_count:
+        # Pull only the last link
+        current_count = driver.execute_script(
+            f"var elements = document.getElementsByClassName('{LINK_CLASS}'); return elements.length;")
+        if current_count == last_count and current_count == song_count:
+            # Find elements that are contained in the infinite scroll list elements and extract the links
+            song_list = [link.get_attribute('href') for link in
+                         driver.find_elements(By.CLASS_NAME, LINK_CLASS)
+                         if link is not None and link.get_attribute('href') is not None]
             break  # All songs found
-        # Check to make sure that we are actually getting new songs each attempt
-        if previous_count == len(song_list):
+        # Handle no new links loading but total size not reached
+        elif current_count == last_count and current_count != song_count:
             trapped_count += 1
             if trapped_count == MAX_COLLECTION_RETRIES:
                 # If attempts exceeds max tries, abort scraping and return with current collection of links
+                song_list = [link.get_attribute('href') for link in
+                             driver.find_elements(By.CLASS_NAME, LINK_CLASS)
+                             if link is not None and link.get_attribute('href') is not None]
                 print(f'Failed collection too many times; continuing with first {len(song_list)} songs')
                 break
+        # Only reset trap counter if we are getting new links
         else:
-            # No need to update these variables if we failed a collection cycle
             trapped_count = 0
-            previous_count = len(song_list)
-        print(f'Collected {len(song_list)} out of {song_count} song links')
+        print(f'Collected {current_count} out of {song_count} song links')
+        last_count = current_count
     driver.quit()
     print(f'Finished scraping, found {len(song_list)} songs!')
 
