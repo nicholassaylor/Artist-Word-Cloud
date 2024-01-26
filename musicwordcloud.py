@@ -64,7 +64,7 @@ def build_artist_page() -> str:
 def build_song_links(artist_page: str) -> None:
     global artist
     global song_list
-    link_stub = "https://genius.com/" + re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(" ", "-").lower())
+    link_search = "-lyrics"
     print('Starting browser...')
     options = webdriver.FirefoxOptions()
     options.add_argument('--headless')
@@ -83,7 +83,7 @@ def build_song_links(artist_page: str) -> None:
         response = [link.get_attribute('href') for link in driver.find_elements(By.TAG_NAME, 'a')
                     if link is not None and link.get_attribute('href') is not None]
         # Extracts only song link while excluding duplicates (3 featured songs at top of page)
-        response = list(dict.fromkeys([href for href in response if link_stub.lower() in href.lower()]))
+        response = list(dict.fromkeys([href for href in response if link_search in href.lower()]))
         if len(response) == song_count:
             break  # All songs found, including the 3 featured song links
         print(f'Collected {len(response)} out of {song_count} song links')
