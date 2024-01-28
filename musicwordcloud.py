@@ -21,9 +21,7 @@ MAX_COLLECTION_RETRIES = 5
 LINK_CLASS = "ListItem__Link-sc-122yj9e-1"
 
 # Globals
-global artist
-global song_list
-song_list: List[str]
+global combined_stopwords
 
 
 def remove_fluff(element) -> str:
@@ -33,23 +31,20 @@ def remove_fluff(element) -> str:
     return re.sub(CLEAN_PUNC_RE, '', element).replace('\n', ' ')
 
 
-def build_artist_page() -> str:
+def build_artist_page(artist_name: str) -> str:
     """Returns a constructed link of an artist's Genius page"""
-    global artist
     base_url = "https://genius.com/artists/"
     # Non-alphanumeric characters are excluded from Genius links, they are effectively replaced with ''
     # Spaces are replaced with '-'
-    constructed_url = re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(" ", "-").lower())
+    constructed_url = re.sub(r'[^a-z0-9-]', '', artist_name.replace(" ", "-").lower())
     return base_url + constructed_url + "/songs"
 
 
-def build_song_links(artist_page: str) -> None:
+def build_song_links(artist_page: str) -> List:
     """
     Compiles a list of song links associated to a particular artist and saves it to song_list
     Pulls data from Genius's songs page using a Selenium webdriver
     """
-    global artist
-    global song_list
     print('Starting browser...')
     # Configure settings for webdriver
     options = webdriver.FirefoxOptions()
@@ -78,7 +73,7 @@ def build_song_links(artist_page: str) -> None:
             f"var elements = document.getElementsByClassName('{LINK_CLASS}'); return elements.length;")
         if current_count == last_count and current_count == song_count:
             # Find elements that are contained in the infinite scroll list elements and extract the links
-            song_list = [link.get_attribute('href') for link in
+            link_list = [link.get_attribute('href') for link in
                          driver.find_elements(By.CLASS_NAME, LINK_CLASS)
                          if link is not None and link.get_attribute('href') is not None]
             break  # All songs found
@@ -87,10 +82,10 @@ def build_song_links(artist_page: str) -> None:
             trapped_count += 1
             if trapped_count == MAX_COLLECTION_RETRIES:
                 # If attempts exceeds max tries, abort scraping and return with current collection of links
-                song_list = [link.get_attribute('href') for link in
+                link_list = [link.get_attribute('href') for link in
                              driver.find_elements(By.CLASS_NAME, LINK_CLASS)
                              if link is not None and link.get_attribute('href') is not None]
-                print(f'Failed collection too many times; continuing with first {len(song_list)} songs')
+                print(f'Failed collection too many times; continuing with first {len(link_list)} songs')
                 break
         # Only reset trap counter if we are getting new links
         else:
@@ -98,7 +93,8 @@ def build_song_links(artist_page: str) -> None:
         print(f'Collected {current_count} out of {song_count} song links')
         last_count = current_count
     driver.quit()
-    print(f'Finished scraping, found {len(song_list)} songs!')
+    print(f'Finished scraping, found {len(link_list)} songs!')
+    return link_list
 
 
 def process_lyrics(url: str) -> str:
@@ -113,50 +109,17 @@ def process_lyrics(url: str) -> str:
         remove_fluff(item.decode_contents().lower())
         for item in lyrics_elements
     ]
-
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
 
 
-if __name__ == '__main__':
-    freeze_support()
-    song_list = []
-    cmd_args = sys.argv[1:]
-    if len(cmd_args) == 0:
-        artist = input("Enter artist name: ")
-        # Error handling for artist name
-        while True:
-            try:
-                build_song_links(build_artist_page())
-                # If artist page is found, will leave prompt loop
-                break
-            except selenium.common.NoSuchElementException:
-                artist = input(f"Artist {artist} could not be found on Genius.\n"
-                               f"Please input a new artist or press enter to close the program: ")
-                if artist == "":
-                    exit(0)
-    else:
-        artist = cmd_args[0]
-        try:
-            build_song_links(build_artist_page())
-        except selenium.common.NoSuchElementException:
-            print(f"Artist {artist} could not be found on Genius. "
-                  f"Please ensure that it is spelled correctly in quotes.")
-            exit(1)
-    data_set = ""
-    # Check if stopwords are downloaded
-    try:
-        nltk.data.find('corpora/stopwords.zip')
-    except LookupError:
-        # Download stopwords if not found
-        print("Downloading stopwords...")
-        nltk.download('stopwords')
-    combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
+def convert_lyrics_to_cloud(song_links: List[str]) -> None:
+    global combined_stopwords
     print("Processing lyrics...")
-    if len(song_list) > 250:
+    if len(song_links) > 250:
         print("This may take a while...")
     # Multiprocess lyrics
     with Pool() as pool:
-        data_set = pool.map(process_lyrics, song_list)
+        data_set = pool.map(process_lyrics, song_links)
         pool.close()
     data_set = " ".join(data_set)
     print("Generating word cloud...")
@@ -167,8 +130,47 @@ if __name__ == '__main__':
     plt.axis("off")
     plt.tight_layout(pad=0)
     try:
-        plt.savefig(fname=f"{re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(' ', '-').lower())}.png")
+        plt.savefig(fname=f"{re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png")
         print("Saved word cloud as a png file!")
     except OSError:
-        print(f"Could not save {re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(' ', '-').lower())}.png\n"
+        print(f"Could not save {re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png\n"
               f"You may not have access to write in this directory.")
+
+
+if __name__ == '__main__':
+    freeze_support()
+    global combined_stopwords
+    # Check if stopwords are downloaded
+    try:
+        nltk.data.find('corpora/stopwords.zip')
+    except LookupError:
+        # Download stopwords if not found
+        print("Downloading stopwords...")
+        nltk.download('stopwords')
+    combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
+    cmd_args = sys.argv[1:]
+    if len(cmd_args) == 0:
+        artist = input("Enter artist name: ")
+        # Error handling for artist name
+        while True:
+            try:
+                song_list = build_song_links(build_artist_page(artist))
+                # If artist page is found, will leave prompt loop
+                break
+            except selenium.common.NoSuchElementException:
+                artist = input(f"Artist {artist} could not be found on Genius.\n"
+                               f"Please input a new artist or press enter to close the program: ")
+                if artist == "":
+                    exit(0)
+    else:
+        artists = cmd_args
+        print(artists)
+        # Create a list of lists with indices labeled by their names
+        for artist in artists:
+            try:
+                song_list = build_song_links(build_artist_page(artist))
+                convert_lyrics_to_cloud(song_list)
+            except selenium.common.NoSuchElementException:
+                print(f"Artist {artist} could not be found on Genius. "
+                      f"Please ensure that it is spelled correctly in quotes.")
+                exit(1)
