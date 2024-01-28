@@ -53,35 +53,33 @@ def build_song_links(artist_page: str) -> List:
     driver = webdriver.Firefox(options=options)
     driver.get(artist_page)
     print("Determining song library...")
-    # Allow page time to load
     time.sleep(1)
     # The song count can be found in the summary of the songs page
     song_count = driver.find_element(By.CLASS_NAME, "ListSectiondesktop__Summary-sc-53xokv-6.dSgVld")
     # Isolate number in text and cast to integer
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
-    if song_count > 500:
+    if song_count > 400:
         print(f'Warning: Large music libraries may fail to load in their entirety. The program will attempt to'
               f' gather as many lyrics to process as possible.')
-    trapped_count = 0
-    last_count = 0
+    trapped_count, last_count = 0, 0
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
         # Pull only the last link
         current_count = driver.execute_script(
             f"var elements = document.getElementsByClassName('{LINK_CLASS}'); return elements.length;")
+        # Found all songs case
         if current_count == last_count and current_count == song_count:
-            # Find elements that are contained in the infinite scroll list elements and extract the links
             link_list = [link.get_attribute('href') for link in
                          driver.find_elements(By.CLASS_NAME, LINK_CLASS)
                          if link is not None and link.get_attribute('href') is not None]
-            break  # All songs found
-        # Handle no new links loading but total size not reached
-        elif current_count == last_count and current_count != song_count:
+            break
+        # Failed load case
+        elif current_count == last_count:
             trapped_count += 1
+            # Failed load too many times case
             if trapped_count == MAX_COLLECTION_RETRIES:
-                # If attempts exceeds max tries, abort scraping and return with current collection of links
                 link_list = [link.get_attribute('href') for link in
                              driver.find_elements(By.CLASS_NAME, LINK_CLASS)
                              if link is not None and link.get_attribute('href') is not None]
@@ -92,6 +90,7 @@ def build_song_links(artist_page: str) -> List:
             trapped_count = 0
         print(f'Collected {current_count} out of {song_count} song links')
         last_count = current_count
+    # Clean up scraping
     driver.quit()
     print(f'Finished scraping, found {len(link_list)} songs!')
     return link_list
@@ -100,7 +99,6 @@ def build_song_links(artist_page: str) -> List:
 def process_lyrics(url: str) -> str:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
-    This is segmented off in order to support multiprocessing in the future
     """
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -113,6 +111,11 @@ def process_lyrics(url: str) -> str:
 
 
 def convert_lyrics_to_cloud(song_links: List[str]) -> None:
+    """
+    Processes the links in the lists into neatly formatted lyrics strings.
+    Then, processes the strings into word clouds, which are saved as .png files.
+    Files are named after the artist as they appear in the Genius links
+    """
     global combined_stopwords
     print("Processing lyrics...")
     if len(song_links) > 250:
@@ -131,7 +134,7 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
     plt.tight_layout(pad=0)
     try:
         plt.savefig(fname=f"{re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png")
-        print("Saved word cloud as a png file!")
+        print(f"Saved word cloud as {re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png !")
     except OSError:
         print(f"Could not save {re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png\n"
               f"You may not have access to write in this directory.")
@@ -155,22 +158,21 @@ if __name__ == '__main__':
         while True:
             try:
                 song_list = build_song_links(build_artist_page(artist))
-                # If artist page is found, will leave prompt loop
+                convert_lyrics_to_cloud(song_list)
                 break
             except selenium.common.NoSuchElementException:
                 artist = input(f"Artist {artist} could not be found on Genius.\n"
                                f"Please input a new artist or press enter to close the program: ")
                 if artist == "":
-                    exit(0)
+                    break
     else:
         artists = cmd_args
-        print(artists)
         # Create a list of lists with indices labeled by their names
         for artist in artists:
             try:
+                print(f"\n\nCurrent artist: {artist}")
                 song_list = build_song_links(build_artist_page(artist))
                 convert_lyrics_to_cloud(song_list)
             except selenium.common.NoSuchElementException:
                 print(f"Artist {artist} could not be found on Genius. "
-                      f"Please ensure that it is spelled correctly in quotes.")
-                exit(1)
+                      f"Please ensure that it is spelled correctly in quotes.", file=sys.stderr)
