@@ -1,3 +1,4 @@
+import selenium.common
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -119,7 +120,17 @@ if __name__ == '__main__':
     freeze_support()
     song_list = []
     artist = input("Enter artist name: ")
-    build_song_links(build_artist_page())
+    # Error handling for artist name
+    while True:
+        try:
+            build_song_links(build_artist_page())
+            # If artist page is found, will leave prompt loop
+            break
+        except selenium.common.NoSuchElementException:
+            artist = input(f"Artist {artist} could not be found on Genius.\n"
+                           f"Please input a new artist or press enter to close the program: ")
+            if artist == "":
+                exit(0)
     data_set = ""
     # Check if stopwords are downloaded
     try:
