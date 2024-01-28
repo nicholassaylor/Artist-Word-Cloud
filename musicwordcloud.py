@@ -166,5 +166,9 @@ if __name__ == '__main__':
     plt.imshow(wordcloud)
     plt.axis("off")
     plt.tight_layout(pad=0)
-    plt.savefig(fname=f"{re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(' ', '-').lower())}.png")
-    print("Saved word cloud as a png file!")
+    try:
+        plt.savefig(fname=f"{re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(' ', '-').lower())}.png")
+        print("Saved word cloud as a png file!")
+    except OSError:
+        print(f"Could not save {re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(' ', '-').lower())}.png\n"
+              f"You may not have access to write in this directory.")
