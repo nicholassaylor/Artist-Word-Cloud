@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import time
 import re
 import requests
+import sys
 
 # Constants
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
@@ -119,18 +120,28 @@ def process_lyrics(url: str) -> str:
 if __name__ == '__main__':
     freeze_support()
     song_list = []
-    artist = input("Enter artist name: ")
-    # Error handling for artist name
-    while True:
+    cmd_args = sys.argv[1:]
+    if len(cmd_args) == 0:
+        artist = input("Enter artist name: ")
+        # Error handling for artist name
+        while True:
+            try:
+                build_song_links(build_artist_page())
+                # If artist page is found, will leave prompt loop
+                break
+            except selenium.common.NoSuchElementException:
+                artist = input(f"Artist {artist} could not be found on Genius.\n"
+                               f"Please input a new artist or press enter to close the program: ")
+                if artist == "":
+                    exit(0)
+    else:
+        artist = cmd_args[0]
         try:
             build_song_links(build_artist_page())
-            # If artist page is found, will leave prompt loop
-            break
         except selenium.common.NoSuchElementException:
-            artist = input(f"Artist {artist} could not be found on Genius.\n"
-                           f"Please input a new artist or press enter to close the program: ")
-            if artist == "":
-                exit(0)
+            print(f"Artist {artist} could not be found on Genius. "
+                  f"Please ensure that it is spelled correctly in quotes.")
+            exit(1)
     data_set = ""
     # Check if stopwords are downloaded
     try:
@@ -155,4 +166,5 @@ if __name__ == '__main__':
     plt.imshow(wordcloud)
     plt.axis("off")
     plt.tight_layout(pad=0)
-    plt.show()
+    plt.savefig(fname=f"{re.sub(r'[^a-zA-Z0-9-]', '', artist.replace(' ', '-').lower())}.png")
+    print("Saved word cloud as a png file!")

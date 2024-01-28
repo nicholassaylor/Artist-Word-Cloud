@@ -10,3 +10,5 @@
 /venv/
 # Idea files
 /.idea/
+# Output files
+/*.png
