@@ -59,7 +59,7 @@ def build_song_links(artist_page: str) -> List:
     # Isolate number in text and cast to integer
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
-    if song_count > 400:
+    if song_count > 200:
         print(f'Warning: Large music libraries may fail to load in their entirety. The program will attempt to'
               f' gather as many lyrics to process as possible.')
     trapped_count, last_count = 0, 0
