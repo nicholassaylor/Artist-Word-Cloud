@@ -3,11 +3,10 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import List
-from wordcloud import WordCloud, STOPWORDS
-from nltk.corpus import stopwords
+from wordcloud import WordCloud
 from multiprocessing import Pool, freeze_support
 from unidecode import unidecode
-import nltk
+from stopwords import COMBINED_STOPWORDS
 import matplotlib.pyplot as plt
 import time
 import re
@@ -20,9 +19,6 @@ HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
 CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
 MAX_COLLECTION_RETRIES = 5
 LINK_CLASS = "ListItem__Link-sc-122yj9e-1"
-
-# Globals
-global combined_stopwords
 
 
 def remove_fluff(element) -> str:
@@ -106,7 +102,7 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
     return filtered_links
 
 
-def process_lyrics(url: str) -> str:
+def process_lyrics(url: str) -> List:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
     """
@@ -114,7 +110,7 @@ def process_lyrics(url: str) -> str:
     soup = BeautifulSoup(response.text, 'html.parser')
     lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
     portions = [
-        unidecode(remove_fluff(item.decode_contents().lower()))
+        remove_fluff(item.decode_contents().lower())
         for item in lyrics_elements
     ]
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
@@ -126,7 +122,6 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
     Then, processes the strings into word clouds, which are saved as .png files.
     Files are named after the artist as they appear in the Genius links
     """
-    global combined_stopwords
     print("Processing lyrics...")
     if len(song_links) > 250:
         print("This may take a while...")
@@ -136,8 +131,8 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
         pool.close()
     data_set = " ".join(data_set)
     print("Generating word cloud...")
-    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=combined_stopwords,
-                          min_font_size=8, max_words=125, relative_scaling=0.7).generate(data_set)
+    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=COMBINED_STOPWORDS,
+                          min_font_size=8, max_words=125, relative_scaling=0.7).generate(unidecode(data_set))
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(wordcloud)
     plt.axis("off")
@@ -152,15 +147,6 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
 
 if __name__ == '__main__':
     freeze_support()
-    global combined_stopwords
-    # Check if stopwords are downloaded
-    try:
-        nltk.data.find('corpora/stopwords.zip')
-    except LookupError:
-        # Download stopwords if not found
-        print("Downloading stopwords...")
-        nltk.download('stopwords')
-    combined_stopwords = set(STOPWORDS) | set(stopwords.words('english'))
     cmd_args = sys.argv[1:]
     if len(cmd_args) == 0:
         artist = input("Enter artist name: ")
