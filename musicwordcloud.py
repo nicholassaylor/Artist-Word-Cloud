@@ -8,6 +8,7 @@ from multiprocessing import Pool, freeze_support
 from unidecode import unidecode
 from stopwords import COMBINED_STOPWORDS
 import matplotlib.pyplot as plt
+from html_classes import *
 import time
 import re
 import requests
@@ -17,8 +18,8 @@ import sys
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
 HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
 CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
+ARTIST_RE = re.compile(r'[^a-z0-9-]')
 MAX_COLLECTION_RETRIES = 5
-LINK_CLASS = "ListItem__Link-sc-122yj9e-1"
 
 
 def remove_fluff(element) -> str:
@@ -33,7 +34,7 @@ def build_artist_page(artist_name: str) -> str:
     base_url = "https://genius.com/artists/"
     # Non-alphanumeric characters are excluded from Genius links, they are effectively replaced with ''
     # Spaces are replaced with '-'
-    constructed_url = re.sub(r'[^a-z0-9-]', '', artist_name.replace(" ", "-").lower())
+    constructed_url = re.sub(ARTIST_RE, '', artist_name.replace(" ", "-").lower())
     return base_url + constructed_url + "/songs"
 
 
@@ -52,7 +53,7 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
     print("Determining song library...")
     time.sleep(1)
     # The song count can be found in the summary of the songs page
-    song_count = driver.find_element(By.CLASS_NAME, "ListSectiondesktop__Summary-sc-53xokv-6.dSgVld")
+    song_count = driver.find_element(By.CLASS_NAME, SUMMARY_CLASS)
     # Isolate number in text and cast to integer
     song_count = int(re.sub("[^0-9]", "", song_count.text))
     print(f'{song_count} songs listed, collecting links...')
@@ -92,7 +93,7 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
     print(f'Finished scraping, found {len(link_list)} songs!')
     # Remove links from unrelated artists/interviews (apparently an issue on larger artists)
     print('Validating links...')
-    pattern = (rf"https?://genius\.com/{re.sub(r'[^a-z0-9-]', '', artist_name.replace(' ', '-').lower())}"
+    pattern = (rf"https?://genius\.com/{re.sub(ARTIST_RE, '', artist_name.replace(' ', '-').lower())}"
                r".*-(lyrics|annotated)$")
     filtered_links = []
     for item in link_list:
@@ -102,13 +103,13 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
     return filtered_links
 
 
-def process_lyrics(url: str) -> List:
+def process_lyrics(url: str) -> str:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
     """
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
+    lyrics_elements = soup.find_all('div', class_=LYRIC_CLASS)
     portions = [
         remove_fluff(item.decode_contents().lower())
         for item in lyrics_elements
@@ -138,10 +139,10 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
     plt.axis("off")
     plt.tight_layout(pad=0)
     try:
-        plt.savefig(fname=f"{re.sub(r'[^a-z0-9-]', '', unidecode(artist).replace(' ', '-').lower())}.png")
-        print(f"Saved word cloud as {re.sub(r'[^a-z0-9-]', '', unidecode(artist).replace(' ', '-').lower())}.png !")
+        plt.savefig(fname=f"{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png")
+        print(f"Saved word cloud as {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png !")
     except OSError:
-        print(f"Could not save {re.sub(r'[^a-z0-9-]', '', unidecode(artist).replace(' ', '-').lower())}.png\n"
+        print(f"Could not save {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png\n"
               f"You may not have access to write in this directory.")
 
 
