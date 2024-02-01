@@ -6,6 +6,7 @@ from typing import List
 from wordcloud import WordCloud, STOPWORDS
 from nltk.corpus import stopwords
 from multiprocessing import Pool, freeze_support
+from unidecode import unidecode
 import nltk
 import matplotlib.pyplot as plt
 import time
@@ -93,6 +94,7 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
     # Clean up scraping
     driver.quit()
     print(f'Finished scraping, found {len(link_list)} songs!')
+    # Remove links from unrelated artists/interviews (apparently an issue on larger artists)
     print('Validating links...')
     pattern = (rf"https?://genius\.com/{re.sub(r'[^a-z0-9-]', '', artist_name.replace(' ', '-').lower())}"
                r".*-(lyrics|annotated)$")
@@ -112,7 +114,7 @@ def process_lyrics(url: str) -> str:
     soup = BeautifulSoup(response.text, 'html.parser')
     lyrics_elements = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
     portions = [
-        remove_fluff(item.decode_contents().lower())
+        unidecode(remove_fluff(item.decode_contents().lower()))
         for item in lyrics_elements
     ]
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
@@ -141,10 +143,10 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
     plt.axis("off")
     plt.tight_layout(pad=0)
     try:
-        plt.savefig(fname=f"{re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png")
-        print(f"Saved word cloud as {re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png !")
+        plt.savefig(fname=f"{re.sub(r'[^a-z0-9-]', '', unidecode(artist).replace(' ', '-').lower())}.png")
+        print(f"Saved word cloud as {re.sub(r'[^a-z0-9-]', '', unidecode(artist).replace(' ', '-').lower())}.png !")
     except OSError:
-        print(f"Could not save {re.sub(r'[^a-z0-9-]', '', artist.replace(' ', '-').lower())}.png\n"
+        print(f"Could not save {re.sub(r'[^a-z0-9-]', '', unidecode(artist).replace(' ', '-').lower())}.png\n"
               f"You may not have access to write in this directory.")
 
 
@@ -165,7 +167,7 @@ if __name__ == '__main__':
         # Error handling for artist name
         while True:
             try:
-                song_list = build_song_links(build_artist_page(artist), artist)
+                song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
                 convert_lyrics_to_cloud(song_list)
                 break
             except selenium.common.NoSuchElementException:
@@ -179,7 +181,7 @@ if __name__ == '__main__':
         for artist in artists:
             try:
                 print(f"\n\nCurrent artist: {artist}")
-                song_list = build_song_links(build_artist_page(artist), artist)
+                song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
                 convert_lyrics_to_cloud(song_list)
             except selenium.common.NoSuchElementException:
                 print(f"Artist {artist} could not be found on Genius. "
