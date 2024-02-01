@@ -23,14 +23,18 @@ MAX_COLLECTION_RETRIES = 5
 
 
 def remove_fluff(element) -> str:
-    """Removes html tags, section names, and additional non-lyric text from lyrics"""
+    """
+    Removes html tags, section names, and additional non-lyric text from lyrics
+    """
     element = re.sub(HTML_TAG_RE, ' ', element)
     element = re.sub(SECTION_RE, '', element)
     return re.sub(CLEAN_PUNC_RE, '', element).replace('\n', ' ')
 
 
 def build_artist_page(artist_name: str) -> str:
-    """Returns a constructed link of an artist's Genius page"""
+    """
+    Returns a link to an artist's Genius page when given their name
+    """
     base_url = "https://genius.com/artists/"
     # Non-alphanumeric characters are excluded from Genius links, they are effectively replaced with ''
     # Spaces are replaced with '-'
@@ -40,7 +44,7 @@ def build_artist_page(artist_name: str) -> str:
 
 def build_song_links(artist_page: str, artist_name: str) -> List:
     """
-    Compiles a list of song links associated to a particular artist and saves it to song_list
+    Compiles a list of song links associated to a particular artist
     Pulls data from Genius's songs page using a Selenium webdriver
     """
     print('Starting browser...')
@@ -106,6 +110,7 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
 def process_lyrics(url: str) -> str:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
+    This function is called by convert_lyrics as part of a multiprocessing pool
     """
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -119,7 +124,7 @@ def process_lyrics(url: str) -> str:
 
 def convert_lyrics(song_links: List[str]) -> str:
     """
-    Processes the links in the lists into neatly formatted lyrics strings.
+    Processes the content of the webpage links lists into neatly formatted lyrics strings.
     """
     print("Processing lyrics...")
     if len(song_links) > 250:
