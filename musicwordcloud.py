@@ -40,7 +40,7 @@ def build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
-def build_song_links(artist_page: str) -> List:
+def build_song_links(artist_page: str, artist_name: str) -> List:
     """
     Compiles a list of song links associated to a particular artist and saves it to song_list
     Pulls data from Genius's songs page using a Selenium webdriver
@@ -83,7 +83,7 @@ def build_song_links(artist_page: str) -> List:
                 link_list = [link.get_attribute('href') for link in
                              driver.find_elements(By.CLASS_NAME, LINK_CLASS)
                              if link is not None and link.get_attribute('href') is not None]
-                print(f'Failed collection too many times; continuing with first {len(link_list)} songs')
+                print(f'Genius failed to load more songs; continuing with first {len(link_list)} songs')
                 break
         # Only reset trap counter if we are getting new links
         else:
@@ -93,7 +93,15 @@ def build_song_links(artist_page: str) -> List:
     # Clean up scraping
     driver.quit()
     print(f'Finished scraping, found {len(link_list)} songs!')
-    return link_list
+    print('Validating links...')
+    pattern = (rf"https?://genius\.com/{re.sub(r'[^a-z0-9-]', '', artist_name.replace(' ', '-').lower())}"
+               r".*-(lyrics|annotated)$")
+    filtered_links = []
+    for item in link_list:
+        if re.match(pattern, item, re.IGNORECASE) is not None:
+            filtered_links.append(item)
+    print(f"Removed {song_count - len(filtered_links)} invalid links; continuing with {len(filtered_links)} songs")
+    return filtered_links
 
 
 def process_lyrics(url: str) -> str:
@@ -157,7 +165,7 @@ if __name__ == '__main__':
         # Error handling for artist name
         while True:
             try:
-                song_list = build_song_links(build_artist_page(artist))
+                song_list = build_song_links(build_artist_page(artist), artist)
                 convert_lyrics_to_cloud(song_list)
                 break
             except selenium.common.NoSuchElementException:
@@ -171,7 +179,7 @@ if __name__ == '__main__':
         for artist in artists:
             try:
                 print(f"\n\nCurrent artist: {artist}")
-                song_list = build_song_links(build_artist_page(artist))
+                song_list = build_song_links(build_artist_page(artist), artist)
                 convert_lyrics_to_cloud(song_list)
             except selenium.common.NoSuchElementException:
                 print(f"Artist {artist} could not be found on Genius. "
