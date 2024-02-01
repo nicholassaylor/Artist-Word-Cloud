@@ -117,11 +117,9 @@ def process_lyrics(url: str) -> str:
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
 
 
-def convert_lyrics_to_cloud(song_links: List[str]) -> None:
+def convert_lyrics(song_links: List[str]) -> str:
     """
     Processes the links in the lists into neatly formatted lyrics strings.
-    Then, processes the strings into word clouds, which are saved as .png files.
-    Files are named after the artist as they appear in the Genius links
     """
     print("Processing lyrics...")
     if len(song_links) > 250:
@@ -130,7 +128,14 @@ def convert_lyrics_to_cloud(song_links: List[str]) -> None:
     with Pool() as pool:
         data_set = pool.map(process_lyrics, song_links)
         pool.close()
-    data_set = " ".join(data_set)
+    return " ".join(data_set)
+
+
+def build_cloud(data_set: str) -> None:
+    """
+    Processes the string into a word cloud, which are saved as .png files.
+    Files are named after the artist as they appear in the Genius links
+    """
     print("Generating word cloud...")
     wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=COMBINED_STOPWORDS,
                           min_font_size=8, max_words=125, relative_scaling=0.7).generate(unidecode(data_set))
@@ -155,7 +160,7 @@ if __name__ == '__main__':
         while True:
             try:
                 song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
-                convert_lyrics_to_cloud(song_list)
+                build_cloud(convert_lyrics(song_list))
                 break
             except selenium.common.NoSuchElementException:
                 artist = input(f"Artist {artist} could not be found on Genius.\n"
@@ -169,7 +174,7 @@ if __name__ == '__main__':
             try:
                 print(f"\n\nCurrent artist: {artist}")
                 song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
-                convert_lyrics_to_cloud(song_list)
+                build_cloud(convert_lyrics(song_list))
             except selenium.common.NoSuchElementException:
                 print(f"Artist {artist} could not be found on Genius. "
                       f"Please ensure that it is spelled correctly in quotes.", file=sys.stderr)
