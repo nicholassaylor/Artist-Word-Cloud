@@ -12,3 +12,5 @@
 /.idea/
 # Output files
 /*.png
+# Pycache
+/__pycache__
