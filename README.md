@@ -18,7 +18,8 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
    * Use `pip install -r requirements.txt` to install the required python packages
 3. Run the Code
    * Typing `musicwordcloud.py` in your terminal will run the code
-   * Artists may be specified through the CLI using the following format: `musicwordcloud.py ["ARTIST_NAME" ... ]`
+   * Artists may be specified through the CLI using the following format:  
+     `musicwordcloud.py ["ARTIST_NAME" ... ]`
    * Output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius
 
 
