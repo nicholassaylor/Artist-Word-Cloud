@@ -15,6 +15,8 @@ import requests
 import sys
 import os
 
+# TODO: Learn Genius API and pull information from API rather than scrape
+
 # Constants
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
 HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
