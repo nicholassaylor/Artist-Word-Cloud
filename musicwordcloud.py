@@ -13,6 +13,7 @@ import time
 import re
 import requests
 import sys
+import os
 
 # Constants
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
@@ -149,7 +150,7 @@ def build_cloud(data_set: str) -> None:
     plt.axis("off")
     plt.tight_layout(pad=0)
     try:
-        plt.savefig(fname=f"{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png")
+        plt.savefig(fname=f"./output_clouds/{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png")
         print(f"Saved word cloud as {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png !")
     except OSError:
         print(f"Could not save {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png\n"
@@ -159,6 +160,10 @@ def build_cloud(data_set: str) -> None:
 if __name__ == '__main__':
     freeze_support()
     cmd_args = sys.argv[1:]
+    try:
+        os.mkdir("./output_clouds/")
+    except FileExistsError:
+        pass
     if len(cmd_args) == 0:
         artist = input("Enter artist name: ")
         # Error handling for artist name

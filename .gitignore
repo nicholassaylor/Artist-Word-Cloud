@@ -11,6 +11,6 @@
 # Idea files
 /.idea/
 # Output files
-/*.png
+/output_clouds/
 # Pycache
-/__pycache__
+/__pycache__/
