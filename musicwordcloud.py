@@ -51,9 +51,8 @@ def build_song_links(artist_page: str, artist_name: str) -> List:
     print('Starting browser...')
     # Configure settings for webdriver
     options = webdriver.FirefoxOptions()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')  # Disable GPU acceleration to avoid some issues
     driver = webdriver.Firefox(options=options)
+    driver.set_window_position(x=-2000, y=-2000)
     driver.get(artist_page)
     print("Determining song library...")
     time.sleep(1)
