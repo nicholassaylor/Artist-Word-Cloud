@@ -1,4 +1,6 @@
 # Music Artist World Bubble
+### Note: This project is currently still in development. Features may not be fully functional and implementation details are subject to change.
+
 ## Description
 This program compiles lyrics from music artists on [Genius](https://genius.com/) and creates word clouds using these lyrics.
 A word cloud is a visual representation of the frequency of words within a particular work, with more frequent words being larger.

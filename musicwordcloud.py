@@ -15,7 +15,7 @@ import requests
 import sys
 import os
 
-# TODO: Learn Genius API and pull information from API rather than scrape
+# TODO: Change Selenium scraping to requests scraping using JS to scroll
 
 # Constants
 SECTION_RE = re.compile(r'\[[^\[\]]*]')
