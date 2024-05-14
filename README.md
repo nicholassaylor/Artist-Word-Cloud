@@ -26,7 +26,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 
 
 ## FAQs
-* Is *INSERT LANGUAGE HERE* supported?
+* Is *insert language here* supported?
   * Currently, the program will accept nearly every language I could think of. However, the stopwords used for the cloud creation is limited to only a few of the most popular languages, so results may vary between languages.
 * Why are all the lyrics romanized? Do you plan to support other scripts?
   * Due to limitations with the underlying library for the word cloud, I can only support a single script at a time. While I may be able to support alternative scripts at a later date, I currently have no plans to work on it.
