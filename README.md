@@ -12,8 +12,8 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 1. Download the Program
    * Go to the Releases Tab and Download the Latest Release
 2. Run the Executable
-   * In a CLI, typing `musicwordcloud.py ["ARTIST_NAME" ... ]` will automatically run the program on the listed artists
    * Double-clicking the program will open the program in a new window and prompt the user for any artists
+   * In a terminal, typing `musicwordcloud.exe ["ARTIST_NAME" ... ]` while in the same directory as the program will automatically run the program on the listed artists
    * In either case, output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `output_clouds`
 
 ## Running from Source
