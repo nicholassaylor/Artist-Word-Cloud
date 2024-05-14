@@ -1,28 +1,14 @@
-import selenium.common
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from typing import List
 from wordcloud import WordCloud
 from multiprocessing import Pool, freeze_support
 from unidecode import unidecode
 from stopwords import COMBINED_STOPWORDS
 import matplotlib.pyplot as plt
-from html_classes import *
-import time
+from constants import *
 import re
 import requests
 import sys
 import os
-
-# TODO: Change Selenium scraping to requests scraping using JS to scroll
-
-# Constants
-SECTION_RE = re.compile(r'\[[^\[\]]*]')
-HTML_TAG_RE = re.compile(r'(<[^>]*>)+')
-CLEAN_PUNC_RE = re.compile(r'[,.?!()\n]')
-ARTIST_RE = re.compile(r'[^a-z0-9-]')
-MAX_COLLECTION_RETRIES = 5
 
 
 def remove_fluff(element) -> str:
@@ -45,68 +31,37 @@ def build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
-def build_song_links(artist_page: str, artist_name: str) -> List:
+def build_song_links(artist_page: str, artist_name: str) -> list:
     """
     Compiles a list of song links associated to a particular artist
-    Pulls data from Genius's songs page using a Selenium webdriver
+    Pulls data from Genius's API
     """
-    print('Starting browser...')
-    # Configure settings for webdriver
-    options = webdriver.FirefoxOptions()
-    driver = webdriver.Firefox(options=options)
-    driver.set_window_position(x=-2000, y=-2000)
-    driver.get(artist_page)
-    print("Determining song library...")
-    time.sleep(1)
-    # The song count can be found in the summary of the songs page
-    song_count = driver.find_element(By.CLASS_NAME, SUMMARY_CLASS)
-    # Isolate number in text and cast to integer
-    song_count = int(re.sub("[^0-9]", "", song_count.text))
-    print(f'{song_count} songs listed, collecting links...')
-    if song_count > 200:
-        print(f'Warning: Large music libraries may fail to load in their entirety. The program will attempt to'
-              f' gather as many lyrics to process as possible.')
-    trapped_count, last_count = 0, 0
-    while True:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        # Pull only the last link
-        current_count = driver.execute_script(
-            f"var elements = document.getElementsByClassName('{LINK_CLASS}'); return elements.length;")
-        # Found all songs case
-        if current_count == last_count and current_count == song_count:
-            link_list = [link.get_attribute('href') for link in
-                         driver.find_elements(By.CLASS_NAME, LINK_CLASS)
-                         if link is not None and link.get_attribute('href') is not None]
+    response = requests.get(artist_page)
+    candidates = re.findall(r"artists/[0-9]+", response.text)
+    api_string = ""
+    for candidate in candidates:
+        content = requests.get(f"https://genius.com/api/{candidate}").json()
+        if content['response']['artist']['name'].lower() == artist_name.lower():
+            api_string = re.sub(r"artists/", "", candidate)
+            print(api_string)
             break
-        # Failed load case
-        elif current_count == last_count:
-            trapped_count += 1
-            # Failed load too many times case
-            if trapped_count == MAX_COLLECTION_RETRIES:
-                link_list = [link.get_attribute('href') for link in
-                             driver.find_elements(By.CLASS_NAME, LINK_CLASS)
-                             if link is not None and link.get_attribute('href') is not None]
-                print(f'Genius failed to load more songs; continuing with first {len(link_list)} songs')
-                break
-        # Only reset trap counter if we are getting new links
+    if api_string == "":
+        raise ValueError()
+    print("Collecting links...\nDepending on the size of the artist's library, this may take a while...")
+    content = requests.get(f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html%2Cmarkdown").json()
+    link_list = []
+    while True:
+        for entry in content['response']['songs']:
+            link_list.append(entry['url'])
+            print(f"{len(link_list)}, {entry['url']}")
+        print(content['response']['next_page'])
+        if content['response']['next_page'] is not None:
+            content = requests.get(f"https://genius.com/api/artists/{api_string}"
+                                   f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
+                                   f"&text_format=html%2Cmarkdown").json()
         else:
-            trapped_count = 0
-        print(f'Collected {current_count} out of {song_count} song links')
-        last_count = current_count
-    # Clean up scraping
-    driver.quit()
-    print(f'Finished scraping, found {len(link_list)} songs!')
-    # Remove links from unrelated artists/interviews (apparently an issue on larger artists)
-    print('Validating links...')
-    pattern = (rf"https?://genius\.com/{re.sub(ARTIST_RE, '', artist_name.replace(' ', '-').lower())}"
-               r".*-(lyrics|annotated)$")
-    filtered_links = []
-    for item in link_list:
-        if re.match(pattern, item, re.IGNORECASE) is not None:
-            filtered_links.append(item)
-    print(f"Removed {song_count - len(filtered_links)} invalid links; continuing with {len(filtered_links)} songs")
-    return filtered_links
+            break
+    return link_list
 
 
 def process_lyrics(url: str) -> str:
@@ -124,7 +79,7 @@ def process_lyrics(url: str) -> str:
     return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
 
 
-def convert_lyrics(song_links: List[str]) -> str:
+def convert_lyrics(song_links: list[str]) -> str:
     """
     Processes the content of the webpage links lists into neatly formatted lyrics strings.
     """
@@ -173,7 +128,7 @@ if __name__ == '__main__':
                 song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
                 build_cloud(convert_lyrics(song_list))
                 break
-            except selenium.common.NoSuchElementException:
+            except ValueError:
                 artist = input(f"Artist {artist} could not be found on Genius.\n"
                                f"Please input a new artist or press enter to close the program: ")
                 if artist == "":
@@ -186,6 +141,6 @@ if __name__ == '__main__':
                 print(f"\n\nCurrent artist: {artist}")
                 song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
                 build_cloud(convert_lyrics(song_list))
-            except selenium.common.NoSuchElementException:
+            except ValueError:
                 print(f"Artist {artist} could not be found on Genius. "
                       f"Please ensure that it is spelled correctly in quotes.", file=sys.stderr)
