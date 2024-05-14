@@ -43,7 +43,6 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
         if content['response']['artist']['name'].lower() == artist_name.lower():
             api_string = re.sub(r"artists/", "", candidate)
-            print(api_string)
             break
     if api_string == "":
         raise ValueError()
@@ -53,8 +52,6 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     while True:
         for entry in content['response']['songs']:
             link_list.append(entry['url'])
-            print(f"{len(link_list)}, {entry['url']}")
-        print(content['response']['next_page'])
         if content['response']['next_page'] is not None:
             content = requests.get(f"https://genius.com/api/artists/{api_string}"
                                    f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
