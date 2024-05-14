@@ -9,7 +9,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 ## Using This Software
 
 #### Requirements
-* [Python 3.11] (https://www.python.org/downloads/release/python-3119/)
+* [Python 3.11](https://www.python.org/downloads/release/python-3119/)
   * pip music be installed to install requirements
 
 #### Instructions
@@ -23,7 +23,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 ## Running from Source
 
 #### Requirements
-* [Python 3.11] (https://www.python.org/downloads/release/python-3119/)
+* [Python 3.11](https://www.python.org/downloads/release/python-3119/)
   * pip must be installed to install requirements
 
 #### Instructions
