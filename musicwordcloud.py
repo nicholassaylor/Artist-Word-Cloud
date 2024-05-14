@@ -1,14 +1,16 @@
-from bs4 import BeautifulSoup
-from wordcloud import WordCloud
-from multiprocessing import Pool, freeze_support
-from unidecode import unidecode
-from stopwords import COMBINED_STOPWORDS
-import matplotlib.pyplot as plt
-from constants import *
-import re
-import requests
-import sys
 import os
+import re
+import sys
+from multiprocessing import Pool, freeze_support
+
+import matplotlib.pyplot as plt
+import requests
+from bs4 import BeautifulSoup
+from unidecode import unidecode
+from wordcloud import WordCloud
+
+from constants import ARTIST_RE, CLEAN_PUNC_RE, HTML_TAG_RE, LYRIC_CLASS, SECTION_RE
+from stopwords import COMBINED_STOPWORDS
 
 
 def remove_fluff(element) -> str:
