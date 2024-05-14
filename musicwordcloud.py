@@ -15,9 +15,9 @@ def remove_fluff(element) -> str:
     """
     Removes html tags, section names, and additional non-lyric text from lyrics
     """
-    element = re.sub(HTML_TAG_RE, ' ', element)
-    element = re.sub(SECTION_RE, '', element)
-    return re.sub(CLEAN_PUNC_RE, '', element).replace('\n', ' ')
+    element = re.sub(HTML_TAG_RE, " ", element)
+    element = re.sub(SECTION_RE, "", element)
+    return re.sub(CLEAN_PUNC_RE, "", element).replace("\n", " ")
 
 
 def build_artist_page(artist_name: str) -> str:
@@ -27,7 +27,7 @@ def build_artist_page(artist_name: str) -> str:
     base_url = "https://genius.com/artists/"
     # Non-alphanumeric characters are excluded from Genius links, they are effectively replaced with ''
     # Spaces are replaced with '-'
-    constructed_url = re.sub(ARTIST_RE, '', artist_name.replace(" ", "-").lower())
+    constructed_url = re.sub(ARTIST_RE, "", artist_name.replace(" ", "-").lower())
     return base_url + constructed_url + "/songs"
 
 
@@ -41,21 +41,27 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     api_string = ""
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
-        if content['response']['artist']['name'].lower() == artist_name.lower():
+        if content["response"]["artist"]["name"].lower() == artist_name.lower():
             api_string = re.sub(r"artists/", "", candidate)
             break
     if api_string == "":
         raise ValueError()
-    print("Collecting links...\nDepending on the size of the artist's library, this may take a while...")
-    content = requests.get(f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html%2Cmarkdown").json()
+    print(
+        "Collecting links...\nDepending on the size of the artist's library, this may take a while..."
+    )
+    content = requests.get(
+        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html%2Cmarkdown"
+    ).json()
     link_list = []
     while True:
-        for entry in content['response']['songs']:
-            link_list.append(entry['url'])
-        if content['response']['next_page'] is not None:
-            content = requests.get(f"https://genius.com/api/artists/{api_string}"
-                                   f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
-                                   f"&text_format=html%2Cmarkdown").json()
+        for entry in content["response"]["songs"]:
+            link_list.append(entry["url"])
+        if content["response"]["next_page"] is not None:
+            content = requests.get(
+                f"https://genius.com/api/artists/{api_string}"
+                f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
+                f"&text_format=html%2Cmarkdown"
+            ).json()
         else:
             break
     return link_list
@@ -67,13 +73,12 @@ def process_lyrics(url: str) -> str:
     This function is called by convert_lyrics as part of a multiprocessing pool
     """
     response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    lyrics_elements = soup.find_all('div', class_=LYRIC_CLASS)
+    soup = BeautifulSoup(response.text, "html.parser")
+    lyrics_elements = soup.find_all("div", class_=LYRIC_CLASS)
     portions = [
-        remove_fluff(item.decode_contents().lower())
-        for item in lyrics_elements
+        remove_fluff(item.decode_contents().lower()) for item in lyrics_elements
     ]
-    return " ".join(re.sub(r'\s+', ' ', portion) for portion in portions)
+    return " ".join(re.sub(r"\s+", " ", portion) for portion in portions)
 
 
 def convert_lyrics(song_links: list[str]) -> str:
@@ -96,21 +101,34 @@ def build_cloud(data_set: str) -> None:
     Files are named after the artist as they appear in the Genius links
     """
     print("Generating word cloud...")
-    wordcloud = WordCloud(width=1080, height=1080, background_color='black', stopwords=COMBINED_STOPWORDS,
-                          min_font_size=8, max_words=125, relative_scaling=0.7).generate(unidecode(data_set))
+    wordcloud = WordCloud(
+        width=1080,
+        height=1080,
+        background_color="black",
+        stopwords=COMBINED_STOPWORDS,
+        min_font_size=8,
+        max_words=125,
+        relative_scaling=0.7,
+    ).generate(unidecode(data_set))
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(wordcloud)
     plt.axis("off")
     plt.tight_layout(pad=0)
     try:
-        plt.savefig(fname=f"./output_clouds/{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png")
-        print(f"Saved word cloud as {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png !")
+        plt.savefig(
+            fname=f"./output_clouds/{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png"
+        )
+        print(
+            f"Saved word cloud as {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png !"
+        )
     except OSError:
-        print(f"Could not save {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png\n"
-              f"You may not have access to write in this directory.")
+        print(
+            f"Could not save {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png\n"
+            f"You may not have access to write in this directory."
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     freeze_support()
     cmd_args = sys.argv[1:]
     try:
@@ -122,12 +140,16 @@ if __name__ == '__main__':
         # Error handling for artist name
         while True:
             try:
-                song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
+                song_list = build_song_links(
+                    build_artist_page(unidecode(artist)), unidecode(artist)
+                )
                 build_cloud(convert_lyrics(song_list))
                 break
             except ValueError:
-                artist = input(f"Artist {artist} could not be found on Genius.\n"
-                               f"Please input a new artist or press enter to close the program: ")
+                artist = input(
+                    f"Artist {artist} could not be found on Genius.\n"
+                    f"Please input a new artist or press enter to close the program: "
+                )
                 if artist == "":
                     break
     else:
@@ -136,8 +158,13 @@ if __name__ == '__main__':
         for artist in artists:
             try:
                 print(f"\n\nCurrent artist: {artist}")
-                song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
+                song_list = build_song_links(
+                    build_artist_page(unidecode(artist)), unidecode(artist)
+                )
                 build_cloud(convert_lyrics(song_list))
             except ValueError:
-                print(f"Artist {artist} could not be found on Genius. "
-                      f"Please ensure that it is spelled correctly in quotes.", file=sys.stderr)
+                print(
+                    f"Artist {artist} could not be found on Genius. "
+                    f"Please ensure that it is spelled correctly in quotes.",
+                    file=sys.stderr,
+                )

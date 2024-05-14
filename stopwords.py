@@ -5,11 +5,11 @@ import nltk
 
 
 try:
-    nltk.data.find('corpora/stopwords.zip')
+    nltk.data.find("corpora/stopwords.zip")
 except LookupError:
     # Download stopwords if not found
     print("Downloading stopwords...")
-    nltk.download('stopwords')
+    nltk.download("stopwords")
 
 combined_stopwords = set(STOPWORDS)
 for lang in stopwords.fileids():
