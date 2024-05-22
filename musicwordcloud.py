@@ -120,7 +120,7 @@ def build_cloud(data_set: str) -> None:
     plt.tight_layout(pad=0)
     try:
         plt.savefig(
-            fname=f"./output_clouds/{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png"
+            fname=f"./OutputClouds/{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png"
         )
         print(
             f"Saved word cloud as {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png !"
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     freeze_support()
     cmd_args = sys.argv[1:]
     try:
-        os.mkdir("./output_clouds/")
+        os.mkdir("./OutputClouds/")
     except FileExistsError:
         pass
     if len(cmd_args) == 0:

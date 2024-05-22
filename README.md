@@ -8,17 +8,13 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 
 ## Using This Software
 
-#### Requirements
-* [Python 3.11](https://www.python.org/downloads/release/python-3119/)
-  * pip music be installed to install requirements
-
 #### Instructions
 1. Download the Program
    * Go to the Releases Tab and Download the Latest Release
 2. Run the Executable
    * Double-clicking the program will open the program in a new window and prompt the user for any artists
    * In a terminal, typing `musicwordcloud.exe ["ARTIST_NAME" ... ]` while in the same directory as the program will automatically run the program on the listed artists
-   * In either case, output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `output_clouds`
+   * In either case, output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `OutputClouds`
 
 ## Running from Source
 
@@ -36,7 +32,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
    * Typing `python.exe musicwordcloud.py` in your terminal opened in the folder will run the code
    * Artists may be specified through the CLI using the following format:  
      `python.exe musicwordcloud.py ["ARTIST_NAME" ... ]`
-   * Output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `output_clouds`
+   * Output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `OutputClouds`
 
 
 ## FAQs
