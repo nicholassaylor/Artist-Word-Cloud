@@ -52,8 +52,7 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
         "Collecting links...\nDepending on the size of the artist's library, this may take a while..."
     )
     content = requests.get(
-        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html%2Cmarkdown"
-    ).json()
+        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html").json()
     link_list = []
     while True:
         for entry in content["response"]["songs"]:
