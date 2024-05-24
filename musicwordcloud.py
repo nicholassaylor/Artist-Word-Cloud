@@ -3,7 +3,7 @@ import re
 import sys
 from multiprocessing import Pool, freeze_support
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plot
 import requests
 from bs4 import BeautifulSoup
 from unidecode import unidecode
@@ -109,25 +109,19 @@ def build_cloud(data_set: str) -> None:
         background_color="black",
         stopwords=COMBINED_STOPWORDS,
         min_font_size=8,
-        max_words=125,
+        max_words=150,
         relative_scaling=0.7,
     ).generate(unidecode(data_set))
-    plt.figure(figsize=(8, 8), facecolor=None)
-    plt.imshow(wordcloud)
-    plt.axis("off")
-    plt.tight_layout(pad=0)
+    plot.figure(figsize=(8, 8), facecolor=None)
+    plot.imshow(wordcloud)
+    plot.axis("off")
+    plot.tight_layout(pad=0)
+    output_name = re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())
     try:
-        plt.savefig(
-            fname=f"./OutputClouds/{re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png"
-        )
-        print(
-            f"Saved word cloud as {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png !"
-        )
+        plot.savefig(fname=f"./OutputClouds/{output_name}.png")
+        print(f"Saved word cloud as {output_name}.png!")
     except OSError:
-        print(
-            f"Could not save {re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())}.png\n"
-            f"You may not have access to write in this directory."
-        )
+        print(f"Could not save {output_name}.png\nYou may not have access to write in this directory.")
 
 
 if __name__ == "__main__":
@@ -138,7 +132,6 @@ if __name__ == "__main__":
     except FileExistsError:
         pass
     if len(cmd_args) == 0:
-        # Error handling for artist name
         while True:
             artist = input("Enter artist name (or press enter to exit): ")
             try:
