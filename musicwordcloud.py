@@ -42,7 +42,8 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     api_string = ""
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
-        if re.sub(r"\W", "", artist_name.lower()) in re.sub(r"\W", "", content["response"]["artist"]["name"].lower()):
+        if (unidecode(re.sub(r"\W", "", artist_name.lower())) in
+                unidecode(re.sub(r"\W", "", content["response"]["artist"]["name"].lower()))):
             api_string = re.sub(r"artists/", "", candidate)
             break
     if api_string == "":
