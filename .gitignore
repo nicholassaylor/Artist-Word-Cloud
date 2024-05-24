@@ -11,7 +11,7 @@
 # Idea files
 /.idea/
 # Output files
-/output_clouds/
+/OutputClouds/
 # Pycache
 /__pycache__/
 # Build/Distribution Files

@@ -140,15 +140,14 @@ if __name__ == "__main__":
     except FileExistsError:
         pass
     if len(cmd_args) == 0:
-        artist = input("Enter artist name: ")
         # Error handling for artist name
         while True:
             try:
-                song_list = build_song_links(
-                    build_artist_page(unidecode(artist)), unidecode(artist)
-                )
+                artist = input("Enter artist name (or press enter to exit): ")
+                if artist == "":
+                    break
+                song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
                 build_cloud(convert_lyrics(song_list))
-                break
             except ValueError:
                 artist = input(
                     f"Artist {artist} could not be found on Genius.\n"
@@ -162,9 +161,7 @@ if __name__ == "__main__":
         for artist in artists:
             try:
                 print(f"\n\nCurrent artist: {artist}")
-                song_list = build_song_links(
-                    build_artist_page(unidecode(artist)), unidecode(artist)
-                )
+                song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
                 build_cloud(convert_lyrics(song_list))
             except ValueError:
                 print(
