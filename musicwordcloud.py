@@ -9,8 +9,7 @@ from bs4 import BeautifulSoup
 from unidecode import unidecode
 from wordcloud import WordCloud
 
-from constants import ARTIST_RE, CLEAN_PUNC_RE, HTML_TAG_RE, LYRIC_CLASS, SECTION_RE
-from stopwords import COMBINED_STOPWORDS
+from constants import ARTIST_RE, CLEAN_PUNC_RE, COMBINED_STOPWORDS, HTML_TAG_RE, LYRIC_CLASS, SECTION_RE
 
 
 def remove_fluff(element) -> str:
@@ -43,9 +42,7 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     api_string = ""
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
-        if re.sub(r"\W", "", content["response"]["artist"]["name"].lower()) == re.sub(
-            r"\W", "", artist_name.lower()
-        ):
+        if re.sub(r"\W", "", artist_name.lower()) in re.sub(r"\W", "", content["response"]["artist"]["name"].lower()):
             api_string = re.sub(r"artists/", "", candidate)
             break
     if api_string == "":
@@ -142,8 +139,8 @@ if __name__ == "__main__":
     if len(cmd_args) == 0:
         # Error handling for artist name
         while True:
+            artist = input("Enter artist name (or press enter to exit): ")
             try:
-                artist = input("Enter artist name (or press enter to exit): ")
                 if artist == "":
                     break
                 song_list = build_song_links(build_artist_page(unidecode(artist)), unidecode(artist))
@@ -153,8 +150,6 @@ if __name__ == "__main__":
                     f"Artist {artist} could not be found on Genius.\n"
                     f"Please input a new artist or press enter to close the program: "
                 )
-                if artist == "":
-                    break
     else:
         artists = cmd_args
         # Create a list of lists with indices labeled by their names
