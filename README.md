@@ -1,20 +1,21 @@
 # Music Artist Word Bubble
-### Note: This project is currently still in development. Features may not be fully functional and implementation details are subject to change.
+### Note: This project is currently in development. Features may not be fully functional and implementation details are subject to change.
 
 ## Description
-This program compiles lyrics from music artists on [Genius](https://genius.com/) and creates word clouds using these lyrics.
+This program pull lyrics from [Genius](https://genius.com/) for a particular artist and creates a word cloud with their lyrics.
 A word cloud is a visual representation of the frequency of words within a particular work, with more frequent words being larger.
-Word clouds can either be in the shape of a particular graphic or simply fill a canvas.
+Word clouds can either be in the shape of a particular graphic or simply fill a canvas, this program does the latter.
 
 ## Using This Software
 
 #### Instructions
 1. Download the Program
-   * Go to the Releases Tab and Download the Latest Release
+   * Go to the [Releases Tab](https://github.com/nicholassaylor/Artist-Word-Bubble/releases) and Download the Latest Release
 2. Run the Executable
-   * Double-clicking the program will open the program in a new window and prompt the user for any artists
-   * In a terminal, typing `musicwordcloud.exe ["ARTIST_NAME" ... ]` while in the same directory as the program will automatically run the program on the listed artists
-   * In either case, output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `OutputClouds`
+   * Double-clicking the program will open the program in a new window and prompt the user for artists
+     * Opening may take a few seconds
+   * In a terminal opened in the folder, type `musicwordcloud.exe ["ARTIST_NAME" ... ]` to automatically run the program on the listed artists
+   * Output will be in the form of a file named `<artist-name>.png` in a folder named `OutputClouds` where the exe was run
 
 ## Running from Source
 
@@ -24,25 +25,23 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 
 #### Instructions
 1. Download the Code
-   * This can be done with the green "Code" button near the "About" section on this page
-   * Select "Download ZIP", save the file, and unzip the folder
+   * Go to the [Releases Tab](https://github.com/nicholassaylor/Artist-Word-Bubble/releases) and Download the Latest Release
+   * Select "Source code (zip)", save the file, and unzip the folder
 2. Install Requirements
    * Use `pip install -r requirements.txt` to install the required python packages
 3. Run the Code
-   * Typing `python.exe musicwordcloud.py` in your terminal opened in the folder will run the code
+   * Typing `python.exe musicwordcloud.py` in a terminal opened in the project folder will run the code
    * Artists may be specified through the CLI using the following format:  
      `python.exe musicwordcloud.py ["ARTIST_NAME" ... ]`
-   * Output will be in the form of a .png file with the artist name as seen in the link to their artist page on Genius. This will be in a folder named `OutputClouds`
+   * Output will be in the form of a file named `<artist-name>.png` in a folder named `OutputClouds` where the code was run
 
 
 ## FAQs
 * Is *insert language here* supported?
-  * Currently, the program will accept nearly every language. However, the stopwords used for the cloud creation is limited to only a few of the most popular languages, so results may vary between languages.
+  * While the program will be able to put out a word cloud for virtually every language, however less widely used languages may contain common stopwords such as articles and prepositions.
 * Why are all the lyrics romanized? Are there plans to support other scripts?
-  * Due to limitations with the underlying library for the word cloud, only a single script supported at a time. Currently, there are no plans to add this functionality.
+  * Due to limitations with the underlying systems, only a single script supported at a time. Currently, there are no plans to add this functionality.
 * Can I limit the word cloud to a specific album?
   * Not currently, however that is planned to be released at a later date.
-* Can I change the colors of the word cloud?
-  * Currently, the colors used in the word cloud are randomized. If you do not like the colors generated, you can attempt to generate again, however this may result in a slightly different arrangement of words. The ability to choose your colors may be released at a later date.
 * Is there a GUI for this program?
   * Currently, there is not a GUI, but this is anticipated to be added at a later date.
