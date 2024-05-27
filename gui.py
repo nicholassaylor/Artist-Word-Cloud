@@ -30,8 +30,10 @@ def get_cloud(artist: str):
         current_cloud = wc
         display_cloud(None)
     else:
-        messagebox.showerror("Could not find artist",
-                             "Artist could not be found on Genius, ensure that it is spelled correctly.")
+        messagebox.showerror(
+            "Could not find artist",
+            "Artist could not be found on Genius, ensure that it is spelled correctly.",
+        )
 
 
 def display_cloud(event):
@@ -55,12 +57,16 @@ def set_up_gui() -> tk.Tk:
     global current_cloud
     current_cloud = None
     root = tk.Tk()
-    root.title('WordCloud')
-    root.geometry('900x700')
+    root.title("WordCloud")
+    root.geometry("900x700")
     # Create styles
     root.style = ttk.Style()
-    root.style.configure("Red.TFrame", background="red")  # Configure style for the red frame
-    root.style.configure("Blue.TFrame", background="blue")  # Configure style for the blue frame
+    root.style.configure(
+        "Red.TFrame", background="red"
+    )  # Configure style for the red frame
+    root.style.configure(
+        "Blue.TFrame", background="blue"
+    )  # Configure style for the blue frame
     # Create Frames
     text_frame = ttk.Frame(root, style="Red.TFrame")
     text_frame.pack(side=tk.BOTTOM, fill=tk.X)
@@ -72,9 +78,11 @@ def set_up_gui() -> tk.Tk:
     # For changing size of cloud
     cloud_frame.bind("<Configure>", display_cloud)
     # Create content
-    text_label = ttk.Label(entry_frame, text='Enter an artist:')
+    text_label = ttk.Label(entry_frame, text="Enter an artist:")
     text_entry = ttk.Entry(entry_frame, width=30)
-    submit_button = ttk.Button(entry_frame, text='Submit', command=lambda: get_cloud(text_entry.get()))
+    submit_button = ttk.Button(
+        entry_frame, text="Submit", command=lambda: get_cloud(text_entry.get())
+    )
     text_output = tk.Text(text_frame, wrap=tk.WORD, height=6, width=75)
     # Fill frames
     text_label.pack(side=tk.LEFT)

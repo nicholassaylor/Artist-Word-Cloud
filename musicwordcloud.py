@@ -9,9 +9,16 @@ from bs4 import BeautifulSoup
 from unidecode import unidecode
 from wordcloud import WordCloud
 
-from constants import ARTIST_RE, CLEAN_PUNC_RE, COMBINED_STOPWORDS, HTML_TAG_RE, LYRIC_CLASS, SECTION_RE
+from constants import (
+    ARTIST_RE,
+    CLEAN_PUNC_RE,
+    COMBINED_STOPWORDS,
+    HTML_TAG_RE,
+    LYRIC_CLASS,
+    SECTION_RE,
+)
 
-__all__ = ['cloud_hook']
+__all__ = ["cloud_hook"]
 
 
 def _remove_fluff(element) -> str:
@@ -44,8 +51,9 @@ def _build_song_links(artist_page: str, artist_name: str) -> list:
     api_string = ""
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
-        if (unidecode(re.sub(r"\W", "", artist_name.lower())) in
-                unidecode(re.sub(r"\W", "", content["response"]["artist"]["name"].lower()))):
+        if unidecode(re.sub(r"\W", "", artist_name.lower())) in unidecode(
+            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
+        ):
             api_string = re.sub(r"artists/", "", candidate)
             break
     if api_string == "":
@@ -54,7 +62,8 @@ def _build_song_links(artist_page: str, artist_name: str) -> list:
         "Collecting links...\nDepending on the size of the artist's library, this may take a while..."
     )
     content = requests.get(
-        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html").json()
+        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
+    ).json()
     link_list = []
     while True:
         for entry in content["response"]["songs"]:
@@ -117,12 +126,14 @@ def _build_cloud(data_set: str) -> None:
     plot.imshow(wordcloud)
     plot.axis("off")
     plot.tight_layout(pad=0)
-    output_name = re.sub(ARTIST_RE, '', unidecode(artist).replace(' ', '-').lower())
+    output_name = re.sub(ARTIST_RE, "", unidecode(artist).replace(" ", "-").lower())
     try:
         plot.savefig(fname=f"./OutputClouds/{output_name}.png")
         print(f"Saved word cloud as {output_name}.png!")
     except OSError:
-        print(f"Could not save {output_name}.png\nYou may not have access to write in this directory.")
+        print(
+            f"Could not save {output_name}.png\nYou may not have access to write in this directory."
+        )
 
 
 def _export_cloud(data_set: str) -> WordCloud:
@@ -143,7 +154,9 @@ def _export_cloud(data_set: str) -> WordCloud:
 
 def cloud_hook(artist_name: str) -> WordCloud or None:
     try:
-        links = _build_song_links(_build_artist_page(unidecode(artist_name)), unidecode(artist_name))
+        links = _build_song_links(
+            _build_artist_page(unidecode(artist_name)), unidecode(artist_name)
+        )
         return _export_cloud(_convert_lyrics(links))
     except ValueError:
         return None
@@ -162,7 +175,9 @@ if __name__ == "__main__":
             try:
                 if artist == "":
                     break
-                song_list = _build_song_links(_build_artist_page(unidecode(artist)), unidecode(artist))
+                song_list = _build_song_links(
+                    _build_artist_page(unidecode(artist)), unidecode(artist)
+                )
                 _build_cloud(_convert_lyrics(song_list))
             except ValueError:
                 artist = input(
@@ -175,7 +190,9 @@ if __name__ == "__main__":
         for artist in artists:
             try:
                 print(f"\n\nCurrent artist: {artist}")
-                song_list = _build_song_links(_build_artist_page(unidecode(artist)), unidecode(artist))
+                song_list = _build_song_links(
+                    _build_artist_page(unidecode(artist)), unidecode(artist)
+                )
                 _build_cloud(_convert_lyrics(song_list))
             except ValueError:
                 print(
