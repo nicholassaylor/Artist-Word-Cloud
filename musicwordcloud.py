@@ -155,9 +155,7 @@ def _export_cloud(data_set: str) -> WordCloud:
 def cloud_hook(artist_name: str) -> WordCloud or None:
     decode_artist = unidecode(artist_name)
     try:
-        links = _build_song_links(
-            _build_artist_page(decode_artist), decode_artist
-        )
+        links = _build_song_links(_build_artist_page(decode_artist), decode_artist)
         return _export_cloud(_convert_lyrics(links))
     except ValueError:
         return None
