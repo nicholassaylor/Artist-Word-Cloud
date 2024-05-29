@@ -153,9 +153,10 @@ def _export_cloud(data_set: str) -> WordCloud:
 
 
 def cloud_hook(artist_name: str) -> WordCloud or None:
+    decode_artist = unidecode(artist_name)
     try:
         links = _build_song_links(
-            _build_artist_page(unidecode(artist_name)), unidecode(artist_name)
+            _build_artist_page(decode_artist), decode_artist
         )
         return _export_cloud(_convert_lyrics(links))
     except ValueError:
@@ -175,8 +176,9 @@ if __name__ == "__main__":
             try:
                 if artist == "":
                     break
+                decoded_artist = unidecode(artist)
                 song_list = _build_song_links(
-                    _build_artist_page(unidecode(artist)), unidecode(artist)
+                    _build_artist_page(decoded_artist), decoded_artist
                 )
                 _build_cloud(_convert_lyrics(song_list))
             except ValueError:
@@ -190,8 +192,9 @@ if __name__ == "__main__":
         for artist in artists:
             try:
                 print(f"\n\nCurrent artist: {artist}")
+                decoded_artist = unidecode(artist)
                 song_list = _build_song_links(
-                    _build_artist_page(unidecode(artist)), unidecode(artist)
+                    _build_artist_page(decoded_artist), decoded_artist
                 )
                 _build_cloud(_convert_lyrics(song_list))
             except ValueError:
