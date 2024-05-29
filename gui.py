@@ -15,6 +15,9 @@ thread: threading.Thread
 
 
 class TextRedirector:
+    """
+    Directs console output from stdout to a text widget provided in the constructor.
+    """
     def __init__(self, text_widget):
         self.text_widget = text_widget
 
@@ -27,6 +30,9 @@ class TextRedirector:
 
 
 def threaded_generation(artist: str):
+    """
+    Thread wrapper for cloud_hook
+    """
     global next_cloud
     next_cloud = cloud_hook(artist)
     if next_cloud is not None:
@@ -36,15 +42,19 @@ def threaded_generation(artist: str):
     return
 
 
-def check_queue():
+def check_thread():
+    """
+    Periodically checks thread for completion, after which it displays current word cloud
+    or gives error for invalid artist
+    """
     if thread.is_alive():
-        root.after(100, check_queue)
+        root.after(100, check_thread)
     else:
         global current_cloud
         global next_cloud
         if next_cloud:
             current_cloud = next_cloud
-            display_cloud(None)
+            display_cloud()
         else:
             messagebox.showerror(
                 "Could not find artist",
@@ -53,13 +63,22 @@ def check_queue():
 
 
 def get_cloud(artist: str):
+    """
+    Initiates thread for building word cloud
+    Calls check_queue on a delay to retrieve word cloud
+    """
     global thread
     thread = threading.Thread(target=threaded_generation, args=(artist,))
     thread.start()
-    root.after(1000, check_queue)
+    root.after(1000, check_thread)
 
 
-def display_cloud(event):
+def display_cloud(event=None):
+    """
+    Displays word cloud based on window size
+    This is called from cloud completion and window resizing, so code should be performant wherever possible
+    event is unused but required for tkinter
+    """
     if current_cloud is not None:
         wc_image = current_cloud.to_array()
         pil_image = Image.fromarray(wc_image)
@@ -76,10 +95,14 @@ def display_cloud(event):
 
 
 def set_up_gui():
+    """
+    Creates layout for GUI as well as setting styles and features for widgets
+    """
     # Prevent error on start-up
     global current_cloud
     global root
     current_cloud = None
+    # Create window
     root = tk.Tk()
     root.title("WordCloud")
     root.geometry("900x700")
@@ -113,6 +136,7 @@ def set_up_gui():
     text_entry.pack(side=tk.LEFT)
     submit_button.pack(side=tk.LEFT)
     text_output.pack()
+    # Redirect output to text widget
     sys.stdout = TextRedirector(text_output)
 
 
