@@ -75,7 +75,7 @@ def display_cloud(event):
         image.image = tk_image
 
 
-def set_up_gui() -> tk.Tk:
+def set_up_gui():
     # Prevent error on start-up
     global current_cloud
     global root
@@ -114,10 +114,10 @@ def set_up_gui() -> tk.Tk:
     submit_button.pack(side=tk.LEFT)
     text_output.pack()
     sys.stdout = TextRedirector(text_output)
-    return root
 
 
 if __name__ == "__main__":
+    global root
     freeze_support()
-    gui = set_up_gui()
-    gui.mainloop()
+    set_up_gui()
+    root.mainloop()
