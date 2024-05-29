@@ -5,9 +5,13 @@ from multiprocessing import freeze_support
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sys
+import threading
 
 current_cloud: WordCloud
+next_cloud: WordCloud
 cloud_frame: tk.Frame
+root: tk.Tk
+thread: threading.Thread
 
 
 class TextRedirector:
@@ -22,18 +26,37 @@ class TextRedirector:
         pass  # Required for file-like object compatibility
 
 
-def get_cloud(artist: str):
-    # TODO: Make this a subprocess so the UI doesn't lag
-    wc: WordCloud = cloud_hook(artist)
-    if wc:
-        global current_cloud
-        current_cloud = wc
-        display_cloud(None)
+def threaded_generation(artist: str):
+    global next_cloud
+    next_cloud = cloud_hook(artist)
+    if next_cloud is not None:
+        print("Word cloud complete!")
     else:
-        messagebox.showerror(
-            "Could not find artist",
-            "Artist could not be found on Genius, ensure that it is spelled correctly.",
-        )
+        print(f"Error with artist: {artist}")
+    return
+
+
+def check_queue():
+    if thread.is_alive():
+        root.after(100, check_queue)
+    else:
+        global current_cloud
+        global next_cloud
+        if next_cloud:
+            current_cloud = next_cloud
+            display_cloud(None)
+        else:
+            messagebox.showerror(
+                "Could not find artist",
+                "Artist could not be found on Genius, ensure that it is spelled correctly.",
+            )
+
+
+def get_cloud(artist: str):
+    global thread
+    thread = threading.Thread(target=threaded_generation, args=(artist,))
+    thread.start()
+    root.after(1000, check_queue)
 
 
 def display_cloud(event):
@@ -55,6 +78,7 @@ def display_cloud(event):
 def set_up_gui() -> tk.Tk:
     # Prevent error on start-up
     global current_cloud
+    global root
     current_cloud = None
     root = tk.Tk()
     root.title("WordCloud")
