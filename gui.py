@@ -10,8 +10,8 @@ import threading
 current_cloud: WordCloud
 next_cloud: WordCloud
 cloud_frame: tk.Frame
-root: tk.Tk
 thread: threading.Thread
+root: tk.Tk
 
 
 class TextRedirector:
@@ -94,7 +94,7 @@ def display_cloud(event=None):
         image.image = tk_image
 
 
-def set_up_gui():
+def set_up_gui() -> tk.Tk:
     """
     Creates layout for GUI as well as setting styles and features for widgets
     """
@@ -138,10 +138,10 @@ def set_up_gui():
     text_output.pack()
     # Redirect output to text widget
     sys.stdout = TextRedirector(text_output)
+    return root
 
 
 if __name__ == "__main__":
-    global root
     freeze_support()
-    set_up_gui()
+    root = set_up_gui()
     root.mainloop()
