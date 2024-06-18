@@ -69,18 +69,24 @@ def check_thread():
 
 def save_cloud(artist: str):
     try:
-        file_path = filedialog.asksaveasfilename(defaultextension=".png",
-                                                 filetypes=[("PNG", "*.png"), ("JPEG", "*.jpg"),
-                                                            ("Bitmap", "*.bmp"), ("GIF", "*.gif"),
-                                                            ("WebP", "*.webp"), ],
-                                                 confirmoverwrite=True,
-                                                 initialfile=f"{sanitize_filename(artist)}.png")
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[
+                ("PNG", "*.png"),
+                ("JPEG", "*.jpg"),
+                ("Bitmap", "*.bmp"),
+                ("GIF", "*.gif"),
+                ("WebP", "*.webp"),
+            ],
+            confirmoverwrite=True,
+            initialfile=f"{sanitize_filename(artist)}.png",
+        )
         if file_path:
             print(f"Saving file to {file_path}")
             current_cloud.to_file(file_path)
-            print(f"Successfully saved file!")
+            print("Successfully saved file!")
         else:
-            print(f"Cancelled saving file")
+            print("Cancelled saving file")
     except OSError:
         messagebox.showerror("Error Saving File", "File could not be saved.")
 
