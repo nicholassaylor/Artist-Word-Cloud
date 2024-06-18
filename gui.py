@@ -76,7 +76,11 @@ def save_cloud(artist: str):
                                                  confirmoverwrite=True,
                                                  initialfile=f"{sanitize_filename(artist)}.png")
         if file_path:
+            print(f"Saving file to {file_path}")
             current_cloud.to_file(file_path)
+            print(f"Successfully saved file!")
+        else:
+            print(f"Cancelled saving file")
     except OSError:
         messagebox.showerror("Error Saving File", "File could not be saved.")
 
