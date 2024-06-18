@@ -3,7 +3,6 @@ import re
 import sys
 from multiprocessing import Pool, freeze_support
 
-import matplotlib.pyplot as plot
 import requests
 from bs4 import BeautifulSoup
 from unidecode import unidecode
@@ -113,22 +112,17 @@ def _build_cloud(data_set: str) -> None:
     Files are named after the artist as they appear in the Genius links
     """
     print("Generating word cloud...")
-    wordcloud = WordCloud(
-        width=1080,
-        height=1080,
-        background_color="black",
-        stopwords=COMBINED_STOPWORDS,
-        min_font_size=8,
-        max_words=150,
-        relative_scaling=0.7,
-    ).generate(unidecode(data_set))
-    plot.figure(figsize=(8, 8), facecolor=None)
-    plot.imshow(wordcloud)
-    plot.axis("off")
-    plot.tight_layout(pad=0)
     output_name = re.sub(ARTIST_RE, "", unidecode(artist).replace(" ", "-").lower())
     try:
-        plot.savefig(fname=f"./OutputClouds/{output_name}.png")
+        WordCloud(
+            width=1080,
+            height=1080,
+            background_color="black",
+            stopwords=COMBINED_STOPWORDS,
+            min_font_size=8,
+            max_words=150,
+            relative_scaling=0.7,
+        ).generate(unidecode(data_set)).to_file(f"{output_name}.png")
         print(f"Saved word cloud as {output_name}.png!")
     except OSError:
         print(
