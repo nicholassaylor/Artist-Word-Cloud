@@ -1,9 +1,10 @@
 from musicwordcloud import cloud_hook
 from wordcloud import WordCloud
 from PIL import ImageTk, Image
+from pathvalidate import sanitize_filename
 from multiprocessing import freeze_support
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import sys
 import threading
 
@@ -18,6 +19,7 @@ class TextRedirector:
     """
     Directs console output from stdout to a text widget provided in the constructor.
     """
+
     def __init__(self, text_widget):
         self.text_widget = text_widget
 
@@ -60,6 +62,20 @@ def check_thread():
                 "Could not find artist",
                 "Artist could not be found on Genius, ensure that it is spelled correctly.",
             )
+
+
+def save_cloud(artist: str):
+    try:
+        file_path = filedialog.asksaveasfilename(defaultextension=".png",
+                                                 filetypes=[("PNG", "*.png"), ("JPEG", "*.jpg"),
+                                                            ("Bitmap", "*.bmp"), ("GIF", "*.gif"),
+                                                            ("Webp", "*.webp"), ],
+                                                 confirmoverwrite=True,
+                                                 initialfile=f"{sanitize_filename(artist)}.png")
+        if file_path:
+            current_cloud.to_file(file_path)
+    except OSError:
+        messagebox.showerror("Error Saving File", "File could not be saved.")
 
 
 def get_cloud(artist: str):
@@ -125,16 +141,20 @@ def set_up_gui() -> tk.Tk:
     # For changing size of cloud
     cloud_frame.bind("<Configure>", display_cloud)
     # Create content
-    text_label = ttk.Label(entry_frame, text="Enter an artist:")
-    text_entry = ttk.Entry(entry_frame, width=30)
+    artist_entry_label = ttk.Label(entry_frame, text="Enter an artist:")
+    artist_entry = ttk.Entry(entry_frame, width=30)
     submit_button = ttk.Button(
-        entry_frame, text="Submit", command=lambda: get_cloud(text_entry.get())
+        entry_frame, text="Submit", command=lambda: get_cloud(artist_entry.get())
+    )
+    save_button = ttk.Button(
+        entry_frame, text="Save as...", command=lambda: save_cloud(artist_entry.get())
     )
     text_output = tk.Text(text_frame, wrap=tk.WORD, height=6, width=75)
     # Fill frames
-    text_label.pack(side=tk.LEFT)
-    text_entry.pack(side=tk.LEFT)
+    artist_entry_label.pack(side=tk.LEFT)
+    artist_entry.pack(side=tk.LEFT)
     submit_button.pack(side=tk.LEFT)
+    save_button.pack(side=tk.LEFT)
     text_output.pack()
     # Redirect output to text widget
     sys.stdout = TextRedirector(text_output)
