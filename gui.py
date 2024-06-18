@@ -72,7 +72,7 @@ def save_cloud(artist: str):
         file_path = filedialog.asksaveasfilename(defaultextension=".png",
                                                  filetypes=[("PNG", "*.png"), ("JPEG", "*.jpg"),
                                                             ("Bitmap", "*.bmp"), ("GIF", "*.gif"),
-                                                            ("Webp", "*.webp"), ],
+                                                            ("WebP", "*.webp"), ],
                                                  confirmoverwrite=True,
                                                  initialfile=f"{sanitize_filename(artist)}.png")
         if file_path:
