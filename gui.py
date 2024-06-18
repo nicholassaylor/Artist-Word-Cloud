@@ -5,6 +5,7 @@ from pathvalidate import sanitize_filename
 from multiprocessing import freeze_support
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+from ttkthemes import ThemedTk
 import sys
 import threading
 
@@ -133,25 +134,19 @@ def set_up_gui() -> tk.Tk:
     global root
     current_cloud = None
     # Create window
-    root = tk.Tk()
+    root = ThemedTk(theme="equilux")
     root.title("WordCloud")
     root.geometry("900x700")
-    # Create styles
-    root.style = ttk.Style()
-    root.style.configure(
-        "Red.TFrame", background="red"
-    )  # Configure style for the red frame
-    root.style.configure(
-        "Blue.TFrame", background="blue"
-    )  # Configure style for the blue frame
     # Create Frames
-    text_frame = ttk.Frame(root, style="Red.TFrame")
+    text_frame = ttk.Frame(root)
     text_frame.pack(side=tk.BOTTOM, fill=tk.X)
-    entry_frame = ttk.Frame(root, style="Blue.TFrame")
-    entry_frame.pack(side=tk.BOTTOM, fill=tk.Y)
+    entry_frame_wrapper = ttk.Frame(root)
+    entry_frame_wrapper.pack(side=tk.BOTTOM, fill=tk.X)
+    entry_frame = ttk.Frame(entry_frame_wrapper)
+    entry_frame.pack(side=tk.BOTTOM, anchor=tk.CENTER)
     global cloud_frame
-    cloud_frame = ttk.Frame(root, style="Red.TFrame")
-    cloud_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+    cloud_frame = ttk.Frame(root)
+    cloud_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, pady=(0, 5), padx=5)
     # For changing size of cloud
     cloud_frame.bind("<Configure>", display_cloud)
     # Create content
@@ -168,11 +163,11 @@ def set_up_gui() -> tk.Tk:
     save_button["state"] = tk.DISABLED
     text_output = tk.Text(text_frame, wrap=tk.WORD, height=6, width=75)
     # Fill frames
-    artist_entry_label.pack(side=tk.LEFT)
+    artist_entry_label.pack(side=tk.LEFT, padx=2)
     artist_entry.pack(side=tk.LEFT)
-    submit_button.pack(side=tk.LEFT)
-    save_button.pack(side=tk.LEFT)
-    text_output.pack()
+    submit_button.pack(side=tk.LEFT, padx=5)
+    save_button.pack(side=tk.LEFT, padx=40, ipadx=10)
+    text_output.pack(pady=20)
     # Redirect output to text widget
     sys.stdout = TextRedirector(text_output)
     return root
