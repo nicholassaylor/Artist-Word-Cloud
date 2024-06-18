@@ -11,6 +11,8 @@ import threading
 current_cloud: WordCloud
 next_cloud: WordCloud
 cloud_frame: tk.Frame
+submit_button: tk.Button
+save_button: tk.Button
 thread: threading.Thread
 root: tk.Tk
 
@@ -53,15 +55,16 @@ def check_thread():
         root.after(100, check_thread)
     else:
         global current_cloud
-        global next_cloud
         if next_cloud:
             current_cloud = next_cloud
             display_cloud()
+            save_button["state"] = tk.NORMAL
         else:
             messagebox.showerror(
                 "Could not find artist",
                 "Artist could not be found on Genius, ensure that it is spelled correctly.",
             )
+        submit_button["state"] = tk.NORMAL
 
 
 def save_cloud(artist: str):
@@ -86,6 +89,7 @@ def get_cloud(artist: str):
     global thread
     thread = threading.Thread(target=threaded_generation, args=(artist,))
     thread.start()
+    submit_button["state"] = tk.DISABLED
     root.after(1000, check_thread)
 
 
@@ -143,12 +147,15 @@ def set_up_gui() -> tk.Tk:
     # Create content
     artist_entry_label = ttk.Label(entry_frame, text="Enter an artist:")
     artist_entry = ttk.Entry(entry_frame, width=30)
+    global submit_button
     submit_button = ttk.Button(
         entry_frame, text="Submit", command=lambda: get_cloud(artist_entry.get())
     )
+    global save_button
     save_button = ttk.Button(
         entry_frame, text="Save as...", command=lambda: save_cloud(artist_entry.get())
     )
+    save_button["state"] = tk.DISABLED
     text_output = tk.Text(text_frame, wrap=tk.WORD, height=6, width=75)
     # Fill frames
     artist_entry_label.pack(side=tk.LEFT)
