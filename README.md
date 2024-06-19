@@ -1,6 +1,4 @@
 # Artist Word Cloud
-
-## Description
 This program pulls lyrics from [Genius](https://genius.com/) for a particular artist and creates a word cloud with their lyrics.
 A word cloud is a visual representation of the frequency of words within a particular work, with more frequent words being larger.
 Word clouds can either be in the shape of a particular graphic or simply fill a canvas, this program does the latter.
