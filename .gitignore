@@ -12,6 +12,11 @@
 /.idea/
 # Output files
 /OutputClouds/
+*.png
+*.jpg
+*.bmp
+*.gif
+*.webp
 # Pycache
 /__pycache__/
 # Build/Distribution Files
