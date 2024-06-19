@@ -48,7 +48,7 @@ def find_api(page: str, name: str) -> str:
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
         if unidecode(re.sub(r"\W", "", name.lower())) in unidecode(
-                re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
+            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
         ):
             api_string = re.sub(r"artists/", "", candidate)
             return api_string
