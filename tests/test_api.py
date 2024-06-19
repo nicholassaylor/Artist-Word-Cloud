@@ -1,5 +1,5 @@
 import unittest
-from musicwordcloud import _find_api, _build_artist_page
+from ..musicwordcloud import _find_api, _build_artist_page
 
 
 class TestApi(unittest.TestCase):
