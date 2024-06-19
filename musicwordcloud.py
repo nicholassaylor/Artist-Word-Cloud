@@ -17,8 +17,6 @@ from constants import (
     SECTION_RE,
 )
 
-__all__ = ["cloud_hook"]
-
 
 def _remove_fluff(element) -> str:
     """
@@ -40,21 +38,29 @@ def _build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
+def _find_api(page: str, name: str) -> str:
+    """
+    Finds the api key for an artist on their artist page
+    """
+    response = requests.get(page)
+    candidates = re.findall(r"artists/[0-9]+", response.text)
+    api_string = ""
+    for candidate in candidates:
+        content = requests.get(f"https://genius.com/api/{candidate}").json()
+        if unidecode(re.sub(r"\W", "", name.lower())) in unidecode(
+                re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
+        ):
+            api_string = re.sub(r"artists/", "", candidate)
+            return api_string
+    return api_string
+
+
 def _build_song_links(artist_page: str, artist_name: str) -> list:
     """
     Compiles a list of song links associated to a particular artist
     Pulls data from Genius's API
     """
-    response = requests.get(artist_page)
-    candidates = re.findall(r"artists/[0-9]+", response.text)
-    api_string = ""
-    for candidate in candidates:
-        content = requests.get(f"https://genius.com/api/{candidate}").json()
-        if unidecode(re.sub(r"\W", "", artist_name.lower())) in unidecode(
-            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
-        ):
-            api_string = re.sub(r"artists/", "", candidate)
-            break
+    api_string = _find_api(artist_page, artist_name)
     if api_string == "":
         raise ValueError()
     print(
