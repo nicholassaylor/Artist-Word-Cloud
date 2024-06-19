@@ -1,4 +1,4 @@
-# Music Artist Word Cloud
+# Artist Word Cloud
 ### Note: This project is currently in development. Features may not be fully functional and implementation details are subject to change.
 
 ## Description
