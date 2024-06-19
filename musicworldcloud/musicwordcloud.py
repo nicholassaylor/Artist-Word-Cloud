@@ -27,7 +27,7 @@ def _remove_fluff(element) -> str:
     return re.sub(CLEAN_PUNC_RE, "", element).replace("\n", " ")
 
 
-def _build_artist_page(artist_name: str) -> str:
+def build_artist_page(artist_name: str) -> str:
     """
     Returns a link to an artist's Genius page when given their name
     """
@@ -38,7 +38,7 @@ def _build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
-def _find_api(page: str, name: str) -> str:
+def find_api(page: str, name: str) -> str:
     """
     Finds the api key for an artist on their artist page
     """
@@ -60,7 +60,7 @@ def _build_song_links(artist_page: str, artist_name: str) -> list:
     Compiles a list of song links associated to a particular artist
     Pulls data from Genius's API
     """
-    api_string = _find_api(artist_page, artist_name)
+    api_string = find_api(artist_page, artist_name)
     if api_string == "":
         raise ValueError()
     print(
@@ -155,7 +155,7 @@ def _export_cloud(data_set: str) -> WordCloud:
 def cloud_hook(artist_name: str) -> WordCloud or None:
     decode_artist = unidecode(artist_name)
     try:
-        links = _build_song_links(_build_artist_page(decode_artist), decode_artist)
+        links = _build_song_links(build_artist_page(decode_artist), decode_artist)
         return _export_cloud(_convert_lyrics(links))
     except ValueError:
         return None
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     freeze_support()
     cmd_args = sys.argv[1:]
     try:
-        os.mkdir("./OutputClouds/")
+        os.mkdir("../OutputClouds/")
     except FileExistsError:
         pass
     if len(cmd_args) == 0:
@@ -176,7 +176,7 @@ if __name__ == "__main__":
                     break
                 decoded_artist = unidecode(artist)
                 song_list = _build_song_links(
-                    _build_artist_page(decoded_artist), decoded_artist
+                    build_artist_page(decoded_artist), decoded_artist
                 )
                 _build_cloud(_convert_lyrics(song_list))
             except ValueError:
@@ -192,7 +192,7 @@ if __name__ == "__main__":
                 print(f"\n\nCurrent artist: {artist}")
                 decoded_artist = unidecode(artist)
                 song_list = _build_song_links(
-                    _build_artist_page(decoded_artist), decoded_artist
+                    build_artist_page(decoded_artist), decoded_artist
                 )
                 _build_cloud(_convert_lyrics(song_list))
             except ValueError:
