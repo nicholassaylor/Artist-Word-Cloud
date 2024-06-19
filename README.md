@@ -1,4 +1,4 @@
-# Music Artist Word Bubble
+# Music Artist Word Cloud
 ### Note: This project is currently in development. Features may not be fully functional and implementation details are subject to change.
 
 ## Description
@@ -10,7 +10,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 
 #### Instructions
 1. Download the Program
-   * Go to the [Releases Tab](https://github.com/nicholassaylor/Artist-Word-Bubble/releases) and download your desired version of the program
+   * Go to the [Releases Tab](https://github.com/nicholassaylor/Artist-Word-Cloud/releases) and download your desired version of the program
      * `musicwordcloud_cli.exe` is the command line version
      * `musicwordcloud_gui.exe` is the graphical version
 2. Run the Executable
@@ -33,7 +33,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
 
 #### Instructions
 1. Download the Code
-   * Go to the [Releases Tab](https://github.com/nicholassaylor/Artist-Word-Bubble/releases) and Download the Latest Release
+   * Go to the [Releases Tab](https://github.com/nicholassaylor/Artist-Word-Cloud/releases) and Download the Latest Release
    * Select "Source code (zip)", save the file, and unzip the folder
 2. Install Requirements
    * Use `pip install -r requirements.txt` to install the required python packages
