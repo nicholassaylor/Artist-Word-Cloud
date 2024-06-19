@@ -1,5 +1,4 @@
 # Artist Word Cloud
-### Note: This project is currently in development. Features may not be fully functional and implementation details are subject to change.
 
 ## Description
 This program pulls lyrics from [Genius](https://genius.com/) for a particular artist and creates a word cloud with their lyrics.
