@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from unidecode import unidecode
 from wordcloud import WordCloud
 
-from .constants import (
+from constants import (
     ARTIST_RE,
     CLEAN_PUNC_RE,
     COMBINED_STOPWORDS,
