@@ -1,4 +1,4 @@
-from artistwordcloud.artistwordcloud_base import cloud_hook
+from artistwordcloud.cloud_core import cloud_hook
 from wordcloud import WordCloud
 from PIL import ImageTk, Image
 from pathvalidate import sanitize_filename
