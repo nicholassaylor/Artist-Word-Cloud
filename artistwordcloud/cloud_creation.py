@@ -24,23 +24,6 @@ def build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
-def find_api(page: str, name: str) -> str:
-    """
-    Finds the api key for an artist on their artist page
-    """
-    response = requests.get(page)
-    candidates = re.findall(r"artists/[0-9]+", response.text)
-    api_string = ""
-    for candidate in candidates:
-        content = requests.get(f"https://genius.com/api/{candidate}").json()
-        if unidecode(re.sub(r"\W", "", name.lower())) in unidecode(
-            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
-        ):
-            api_string = re.sub(r"artists/", "", candidate)
-            return api_string
-    return api_string
-
-
 def build_song_links(artist_page: str, artist_name: str) -> list:
     """
     Compiles a list of song links associated to a particular artist
@@ -70,6 +53,39 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     return link_list
 
 
+def export_cloud(data_set: str) -> WordCloud:
+    """
+    Processes the string into a word cloud, returning the cloud
+    """
+    wordcloud = WordCloud(
+        width=1080,
+        height=1080,
+        background_color="black",
+        stopwords=COMBINED_STOPWORDS,
+        min_font_size=8,
+        max_words=150,
+        relative_scaling=0.7,
+    ).generate(unidecode(data_set))
+    return wordcloud
+
+
+def find_api(page: str, name: str) -> str:
+    """
+    Finds the api key for an artist on their artist page
+    """
+    response = requests.get(page)
+    candidates = re.findall(r"artists/[0-9]+", response.text)
+    api_string = ""
+    for candidate in candidates:
+        content = requests.get(f"https://genius.com/api/{candidate}").json()
+        if unidecode(re.sub(r"\W", "", name.lower())) in unidecode(
+            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
+        ):
+            api_string = re.sub(r"artists/", "", candidate)
+            return api_string
+    return api_string
+
+
 def process_lyrics(url: str) -> str:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
@@ -97,22 +113,6 @@ def convert_lyrics(song_links: list[str]) -> str:
         data_set = pool.map(process_lyrics, song_links)
         pool.close()
     return " ".join(data_set)
-
-
-def export_cloud(data_set: str) -> WordCloud:
-    """
-    Processes the string into a word cloud, returning the cloud
-    """
-    wordcloud = WordCloud(
-        width=1080,
-        height=1080,
-        background_color="black",
-        stopwords=COMBINED_STOPWORDS,
-        min_font_size=8,
-        max_words=150,
-        relative_scaling=0.7,
-    ).generate(unidecode(data_set))
-    return wordcloud
 
 
 def cloud_hook(artist_name: str) -> WordCloud or None:
