@@ -1,10 +1,14 @@
-import os
-import sys
 import re
-from unidecode import unidecode
+import sys
+from artistwordcloud.cloud_core import (
+    build_song_links,
+    build_artist_page,
+    convert_lyrics,
+)
+from artistwordcloud.constants import ARTIST_RE, COMBINED_STOPWORDS
 from multiprocessing import freeze_support
+from unidecode import unidecode
 from wordcloud import WordCloud
-from artistwordcloud.cloud_core import build_song_links, build_artist_page, convert_lyrics, ARTIST_RE, COMBINED_STOPWORDS
 
 
 def build_cloud(data_set: str) -> None:

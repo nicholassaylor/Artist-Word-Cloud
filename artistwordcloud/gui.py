@@ -1,14 +1,15 @@
-from artistwordcloud.cloud_core import cloud_hook
-from wordcloud import WordCloud
-from PIL import ImageTk, Image
-from pathvalidate import sanitize_filename
-from multiprocessing import freeze_support
-import tkinter as tk
-from copy import deepcopy
-from tkinter import ttk, messagebox, filedialog
-from ttkthemes import ThemedTk
 import sys
 import threading
+import tkinter as tk
+from artistwordcloud.cloud_core import cloud_hook
+from copy import deepcopy
+from multiprocessing import freeze_support
+from pathvalidate import sanitize_filename
+from PIL import ImageTk, Image
+from tkinter import ttk, messagebox, filedialog
+from ttkthemes import ThemedTk
+from wordcloud import WordCloud
+
 
 current_cloud: WordCloud
 next_cloud: WordCloud

@@ -1,8 +1,7 @@
 import re
-from multiprocessing import Pool
-
 import requests
 from bs4 import BeautifulSoup
+from multiprocessing import Pool
 from unidecode import unidecode
 from wordcloud import WordCloud
 
@@ -133,4 +132,3 @@ def cloud_hook(artist_name: str) -> WordCloud or None:
         return export_cloud(convert_lyrics(links))
     except ValueError:
         return None
-
