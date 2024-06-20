@@ -53,7 +53,7 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     return link_list
 
 
-def export_cloud(data_set: str) -> WordCloud:
+def _export_cloud(data_set: str) -> WordCloud:
     """
     Processes the string into a word cloud, returning the cloud
     """
@@ -86,7 +86,7 @@ def find_api(page: str, name: str) -> str:
     return api_string
 
 
-def process_lyrics(url: str) -> str:
+def _process_lyrics(url: str) -> str:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
     This function is called by convert_lyrics as part of a multiprocessing pool
@@ -101,7 +101,7 @@ def process_lyrics(url: str) -> str:
     return " ".join(re.sub(r"\s+", " ", portion) for portion in portions)
 
 
-def convert_lyrics(song_links: list[str]) -> str:
+def _convert_lyrics(song_links: list[str]) -> str:
     """
     Processes the content of the webpage links lists into neatly formatted lyrics strings.
     """
@@ -110,7 +110,7 @@ def convert_lyrics(song_links: list[str]) -> str:
         print("This may take a while...")
     # Multiprocess lyrics
     with Pool() as pool:
-        data_set = pool.map(process_lyrics, song_links)
+        data_set = pool.map(_process_lyrics, song_links)
         pool.close()
     return " ".join(data_set)
 
@@ -119,6 +119,6 @@ def cloud_hook(artist_name: str) -> WordCloud or None:
     decode_artist = unidecode(artist_name)
     try:
         links = build_song_links(build_artist_page(decode_artist), decode_artist)
-        return export_cloud(convert_lyrics(links))
+        return _export_cloud(_convert_lyrics(links))
     except ValueError:
         return None
