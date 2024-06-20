@@ -7,21 +7,10 @@ from wordcloud import WordCloud
 
 from artistwordcloud.constants import (
     ARTIST_RE,
-    CLEAN_PUNC_RE,
+    CLEAN_LYRICS_RE,
     COMBINED_STOPWORDS,
-    HTML_TAG_RE,
     LYRIC_CLASS,
-    SECTION_RE,
 )
-
-
-def remove_fluff(element) -> str:
-    """
-    Removes html tags, section names, and additional non-lyric text from lyrics
-    """
-    element = re.sub(HTML_TAG_RE, " ", element)
-    element = re.sub(SECTION_RE, "", element)
-    return re.sub(CLEAN_PUNC_RE, "", element).replace("\n", " ")
 
 
 def build_artist_page(artist_name: str) -> str:
@@ -88,9 +77,10 @@ def process_lyrics(url: str) -> str:
     """
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
-    lyrics_elements = soup.find_all("div", class_=LYRIC_CLASS)
+    lyric_elements = soup.find_all("div", class_=LYRIC_CLASS)
     portions = [
-        remove_fluff(item.decode_contents().lower()) for item in lyrics_elements
+        re.sub(CLEAN_LYRICS_RE, " ", item.decode_contents().lower())
+        for item in lyric_elements
     ]
     return " ".join(re.sub(r"\s+", " ", portion) for portion in portions)
 
