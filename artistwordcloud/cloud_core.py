@@ -1,7 +1,5 @@
-import os
 import re
-import sys
-from multiprocessing import Pool, freeze_support
+from multiprocessing import Pool
 
 import requests
 from bs4 import BeautifulSoup
@@ -18,7 +16,7 @@ from artistwordcloud.constants import (
 )
 
 
-def _remove_fluff(element) -> str:
+def remove_fluff(element) -> str:
     """
     Removes html tags, section names, and additional non-lyric text from lyrics
     """
@@ -55,7 +53,7 @@ def find_api(page: str, name: str) -> str:
     return api_string
 
 
-def _build_song_links(artist_page: str, artist_name: str) -> list:
+def build_song_links(artist_page: str, artist_name: str) -> list:
     """
     Compiles a list of song links associated to a particular artist
     Pulls data from Genius's API
@@ -84,7 +82,7 @@ def _build_song_links(artist_page: str, artist_name: str) -> list:
     return link_list
 
 
-def _process_lyrics(url: str) -> str:
+def process_lyrics(url: str) -> str:
     """
     Processes the lyrics for a particular webpage and returns them as a nicely formatted string
     This function is called by convert_lyrics as part of a multiprocessing pool
@@ -93,12 +91,12 @@ def _process_lyrics(url: str) -> str:
     soup = BeautifulSoup(response.text, "html.parser")
     lyrics_elements = soup.find_all("div", class_=LYRIC_CLASS)
     portions = [
-        _remove_fluff(item.decode_contents().lower()) for item in lyrics_elements
+        remove_fluff(item.decode_contents().lower()) for item in lyrics_elements
     ]
     return " ".join(re.sub(r"\s+", " ", portion) for portion in portions)
 
 
-def _convert_lyrics(song_links: list[str]) -> str:
+def convert_lyrics(song_links: list[str]) -> str:
     """
     Processes the content of the webpage links lists into neatly formatted lyrics strings.
     """
@@ -107,36 +105,12 @@ def _convert_lyrics(song_links: list[str]) -> str:
         print("This may take a while...")
     # Multiprocess lyrics
     with Pool() as pool:
-        data_set = pool.map(_process_lyrics, song_links)
+        data_set = pool.map(process_lyrics, song_links)
         pool.close()
     return " ".join(data_set)
 
 
-def _build_cloud(data_set: str) -> None:
-    """
-    Processes the string into a word cloud, which are saved as .png files.
-    Files are named after the artist as they appear in the Genius links
-    """
-    print("Generating word cloud...")
-    output_name = re.sub(ARTIST_RE, "", unidecode(artist).replace(" ", "-").lower())
-    try:
-        WordCloud(
-            width=1080,
-            height=1080,
-            background_color="black",
-            stopwords=COMBINED_STOPWORDS,
-            min_font_size=8,
-            max_words=150,
-            relative_scaling=0.7,
-        ).generate(unidecode(data_set)).to_file(f"{output_name}.png")
-        print(f"Saved word cloud as {output_name}.png!")
-    except OSError:
-        print(
-            f"Could not save {output_name}.png\nYou may not have access to write in this directory."
-        )
-
-
-def _export_cloud(data_set: str) -> WordCloud:
+def export_cloud(data_set: str) -> WordCloud:
     """
     Processes the string into a word cloud, returning the cloud
     """
@@ -155,49 +129,8 @@ def _export_cloud(data_set: str) -> WordCloud:
 def cloud_hook(artist_name: str) -> WordCloud or None:
     decode_artist = unidecode(artist_name)
     try:
-        links = _build_song_links(build_artist_page(decode_artist), decode_artist)
-        return _export_cloud(_convert_lyrics(links))
+        links = build_song_links(build_artist_page(decode_artist), decode_artist)
+        return export_cloud(convert_lyrics(links))
     except ValueError:
         return None
 
-
-if __name__ == "__main__":
-    freeze_support()
-    cmd_args = sys.argv[1:]
-    try:
-        os.mkdir("../OutputClouds/")
-    except FileExistsError:
-        pass
-    if len(cmd_args) == 0:
-        while True:
-            artist = input("Enter artist name (or press enter to exit): ")
-            try:
-                if artist == "":
-                    break
-                decoded_artist = unidecode(artist)
-                song_list = _build_song_links(
-                    build_artist_page(decoded_artist), decoded_artist
-                )
-                _build_cloud(_convert_lyrics(song_list))
-            except ValueError:
-                artist = input(
-                    f"Artist {artist} could not be found on Genius.\n"
-                    f"Please input a new artist or press enter to close the program: "
-                )
-    else:
-        artists = cmd_args
-        # Create a list of lists with indices labeled by their names
-        for artist in artists:
-            try:
-                print(f"\n\nCurrent artist: {artist}")
-                decoded_artist = unidecode(artist)
-                song_list = _build_song_links(
-                    build_artist_page(decoded_artist), decoded_artist
-                )
-                _build_cloud(_convert_lyrics(song_list))
-            except ValueError:
-                print(
-                    f"Artist {artist} could not be found on Genius. "
-                    f"Please ensure that it is spelled correctly in quotes.",
-                    file=sys.stderr,
-                )
