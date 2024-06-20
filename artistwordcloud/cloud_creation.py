@@ -2,6 +2,8 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
+from rapidfuzz import fuzz
+from typing import Optional
 from unidecode import unidecode
 from wordcloud import WordCloud
 
@@ -24,7 +26,9 @@ def build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
-def build_song_links(artist_page: str, artist_name: str) -> list:
+def build_song_links(
+    artist_page: str, artist_name: str, album: Optional[str] = ""
+) -> list:
     """
     Compiles a list of song links associated to a particular artist
     Pulls data from Genius's API
@@ -41,7 +45,8 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
     link_list = []
     while True:
         for entry in content["response"]["songs"]:
-            link_list.append(entry["url"])
+            if _is_album(entry["api_path"], album):
+                link_list.append(entry["url"])
         if content["response"]["next_page"] is not None:
             content = requests.get(
                 f"https://genius.com/api/artists/{api_string}"
@@ -50,7 +55,22 @@ def build_song_links(artist_page: str, artist_name: str) -> list:
             ).json()
         else:
             break
+    if album is not None and len(link_list) == 0:
+        raise LookupError()
     return link_list
+
+
+def _is_album(api_link: str, album: str or None) -> bool:
+    if album is None:
+        return True
+    api_info = requests.get(f"https://genius.com/api{api_link}").json()
+    data = api_info["response"]["song"]["album"]
+    if data is None:
+        return False
+    print(
+        f"Ratio of {data['name'].lower()} and {album.lower()} = {fuzz.ratio(data['name'].lower(), album.lower())}"
+    )
+    return fuzz.ratio(data["name"].lower(), album.lower()) >= 65.0
 
 
 def _export_cloud(data_set: str) -> WordCloud:
@@ -115,10 +135,10 @@ def _convert_lyrics(song_links: list[str]) -> str:
     return " ".join(data_set)
 
 
-def cloud_hook(artist_name: str) -> WordCloud or None:
+def cloud_hook(artist_name: str, album: Optional[str] = "") -> WordCloud or None:
     decode_artist = unidecode(artist_name)
     try:
-        links = build_song_links(build_artist_page(decode_artist), decode_artist)
+        links = build_song_links(build_artist_page(decode_artist), decode_artist, album)
         return _export_cloud(_convert_lyrics(links))
     except ValueError:
         return None

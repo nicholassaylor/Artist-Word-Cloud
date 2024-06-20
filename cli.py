@@ -17,17 +17,25 @@ if __name__ == "__main__":
             output_name = ""
             if artist == "":
                 break
+            album = input("Enter album name (or press enter to include all albums): ")
             try:
                 output_name = re.sub(
                     ARTIST_RE, "", unidecode(artist).replace(" ", "-").lower()
                 )
-                cloud: WordCloud = cloud_hook(artist)
+                if album:
+                    output_name += "-" + unidecode(album).replace(" ", "-").lower()
+                cloud: WordCloud = cloud_hook(artist, album)
                 cloud.to_file(f"{output_name}.png")
                 print(f"Saved word cloud as {output_name}.png!")
             except ValueError:
                 artist = input(
                     f"Artist {artist} could not be found on Genius.\n"
                     f"Please input a new artist or press enter to close the program: "
+                )
+            except LookupError:
+                print(
+                    f"Album {album} could not be found.\n"
+                    f"Check the spelling of the album or if the album is in another script, please copy that version and try again."
                 )
             except OSError:
                 print(
