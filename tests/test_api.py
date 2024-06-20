@@ -1,5 +1,5 @@
 import unittest
-from artistwordcloud.cloud_core import find_api, build_artist_page
+from artistwordcloud.cloud_creation import find_api, build_artist_page
 
 
 class TestApi(unittest.TestCase):

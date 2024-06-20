@@ -1,7 +1,7 @@
 import sys
 import threading
 import tkinter as tk
-from artistwordcloud.cloud_core import cloud_hook
+from artistwordcloud.cloud_creation import cloud_hook
 from copy import deepcopy
 from multiprocessing import freeze_support
 from pathvalidate import sanitize_filename

@@ -1,6 +1,6 @@
 import re
 import sys
-from artistwordcloud.cloud_core import cloud_hook
+from artistwordcloud.cloud_creation import cloud_hook
 from artistwordcloud.constants import ARTIST_RE
 from multiprocessing import freeze_support
 from unidecode import unidecode
