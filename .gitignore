@@ -19,6 +19,7 @@
 *.webp
 # Pycache
 /__pycache__/
+*/__pycache__/
 # Build/Distribution Files
 /build/
 /dist/
