@@ -1,4 +1,4 @@
-from artistwordcloud.artistwordcloud import cloud_hook
+from artistwordcloud.artistwordcloud_base import cloud_hook
 from wordcloud import WordCloud
 from PIL import ImageTk, Image
 from pathvalidate import sanitize_filename
@@ -116,17 +116,15 @@ def display_cloud(event=None):
     event is unused but required for tkinter
     """
     if current_cloud is not None:
-        wc_image = current_cloud.to_array()
-        pil_image = Image.fromarray(wc_image)
         cloud_frame = window.nametowidget("cloud_frame")
         size = min(cloud_frame.winfo_width(), cloud_frame.winfo_height())
-        pil_image = pil_image.resize((size, size), Image.LANCZOS)
-        tk_image = ImageTk.PhotoImage(pil_image)
+        wc_image = current_cloud.to_image().resize((size, size), Image.LANCZOS)
+        tk_image = ImageTk.PhotoImage(wc_image)
         # Remove old clouds
-        for widget in cloud_frame.winfo_children():
-            widget.destroy()
-        image = ttk.Label(cloud_frame)
-        image.pack()
+        if not cloud_frame.winfo_children():
+            image = ttk.Label(cloud_frame, name="image")
+            image.pack()
+        image = window.nametowidget("cloud_frame.image")
         image.config(image=tk_image)
         image.image = tk_image
 
