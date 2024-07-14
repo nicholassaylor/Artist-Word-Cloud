@@ -148,10 +148,10 @@ def set_up_gui() -> tk.Tk:
     # Create Frames
     text_frame = ttk.Frame(root)
     text_frame.pack(side=tk.BOTTOM, fill=tk.X)
-    album_frame_wrapper = ttk.Frame(root, name="album_frame_wrapper")
-    album_frame_wrapper.pack(side=tk.BOTTOM, fill=tk.X)
-    album_frame = ttk.Frame(album_frame_wrapper, name="album_frame")
-    album_frame.pack(side=tk.BOTTOM, anchor=tk.CENTER)
+    button_frame_wrapper = ttk.Frame(root, name="button_frame_wrapper")
+    button_frame_wrapper.pack(side=tk.BOTTOM, fill=tk.X)
+    button_frame = ttk.Frame(button_frame_wrapper, name="button_frame")
+    button_frame.pack(side=tk.BOTTOM, anchor=tk.CENTER)
     entry_frame_wrapper = ttk.Frame(root, name="entry_frame_wrapper")
     entry_frame_wrapper.pack(side=tk.BOTTOM, fill=tk.X)
     entry_frame = ttk.Frame(entry_frame_wrapper, name="entry_frame")
@@ -161,18 +161,18 @@ def set_up_gui() -> tk.Tk:
     # For changing size of cloud
     cloud_frame.bind("<Configure>", display_cloud)
     # Create content
-    album_entry_label = ttk.Label(album_frame, text="Enter an album:")
-    album_entry = ttk.Entry(album_frame, width=30)
     artist_entry_label = ttk.Label(entry_frame, text="Enter an artist:")
     artist_entry = ttk.Entry(entry_frame, width=30)
+    album_entry_label = ttk.Label(entry_frame, text="(Optional) Enter an album:")
+    album_entry = ttk.Entry(entry_frame, width=30)
     submit_button = ttk.Button(
-        entry_frame,
+        button_frame,
         text="Submit",
         command=lambda: get_cloud(artist_entry.get(), album_entry.get()),
         name="submit_button",
     )
     save_button = ttk.Button(
-        entry_frame,
+        button_frame,
         text="Save as...",
         command=lambda: save_cloud(artist_entry.get(), album_entry.get()),
         name="save_button",
@@ -180,10 +180,10 @@ def set_up_gui() -> tk.Tk:
     save_button["state"] = tk.DISABLED
     text_output = tk.Text(text_frame, wrap=tk.WORD, height=6, width=75)
     # Fill frames
-    album_entry_label.pack(side=tk.LEFT, padx=2)
-    album_entry.pack(side=tk.LEFT)
     artist_entry_label.pack(side=tk.LEFT, padx=2)
-    artist_entry.pack(side=tk.LEFT)
+    artist_entry.pack(side=tk.LEFT, padx=5)
+    album_entry_label.pack(side=tk.LEFT, padx=2)
+    album_entry.pack(side=tk.LEFT, padx=5)
     submit_button.pack(side=tk.LEFT, padx=5)
     save_button.pack(side=tk.LEFT, padx=40, ipadx=10)
     text_output.pack(pady=20)
