@@ -15,6 +15,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
       * Double-clicking the program will open the program in a new window and prompt the user for artists
         * Opening may take a few seconds and require confirmation from your operating system
       * In a terminal opened in the folder, type `artistwordcloud_cli.exe ["ARTIST_NAME" ... ]` to automatically run the program on the listed artists
+      * Currently, albums cannot be specified through command line arguments
       * Output will be in the form of a file named `<artist-name>.png` in the folder the program was run
    * **Graphical Interface Version**
      * Double-clicking the program will open the interface to create and save word clouds
@@ -39,6 +40,7 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
      * Typing `python.exe artistwordcloud/artistwordcloud.py` in a terminal opened in the project folder or opening the file directly in Python will run the command line interface
      * Artists may be specified through the CLI using the following format:  
      `python.exe artistwordcloud/artistwordcloud.py ["ARTIST_NAME" ... ]`
+     * Currently, albums cannot be specified through command line arguments
      * Output will be in the form of a file named `<artist-name>.png` in the folder the program was run
    * **Graphical Interface Version**
      * Typing `python.exe artistwordcloud/gui.py` in a terminal opened in the project folder or opening the file directly in Python will run the graphical interface to interact with
