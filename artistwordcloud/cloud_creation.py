@@ -2,11 +2,13 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
+from typing import Optional
 from unidecode import unidecode
 from wordcloud import WordCloud
 
 from artistwordcloud.constants import (
     ARTIST_RE,
+    ALBUM_LINK_CLASS,
     CLEAN_LYRICS_RE,
     COMBINED_STOPWORDS,
     LYRIC_CLASS,
@@ -24,32 +26,48 @@ def build_artist_page(artist_name: str) -> str:
     return base_url + constructed_url + "/songs"
 
 
-def build_song_links(artist_page: str, artist_name: str) -> list:
+def build_song_links(
+    artist_page: str, artist_name: str, album: Optional[str] = None
+) -> list:
     """
     Compiles a list of song links associated to a particular artist
     Pulls data from Genius's API
     """
-    api_string = find_api(artist_page, artist_name)
-    if api_string == "":
-        raise ValueError()
     print(
         "Collecting links...\nDepending on the size of the artist's library, this may take a while..."
     )
-    content = requests.get(
-        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
-    ).json()
     link_list = []
-    while True:
-        for entry in content["response"]["songs"]:
-            link_list.append(entry["url"])
-        if content["response"]["next_page"] is not None:
+    if album:
+        try:
+            album_slug = re.sub(ARTIST_RE, "", album.replace(" ", "-").lower())
+            artist_slug = re.sub(ARTIST_RE, "", artist_name.replace(" ", "-").lower())
             content = requests.get(
-                f"https://genius.com/api/artists/{api_string}"
-                f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
-                f"&text_format=html%2Cmarkdown"
-            ).json()
-        else:
-            break
+                f"https://genius.com/albums/{artist_slug}/{album_slug}"
+            )
+            soup = BeautifulSoup(content.text, "html.parser")
+            song_links = soup.find_all("a", class_=ALBUM_LINK_CLASS)
+            for link in song_links:
+                link_list.append(link["href"])
+        except requests.exceptions.RequestException:
+            raise LookupError()
+    else:
+        api_string = find_api(artist_page, artist_name)
+        if api_string == "":
+            raise ValueError()
+        content = requests.get(
+            f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
+        ).json()
+        while True:
+            for entry in content["response"]["songs"]:
+                link_list.append(entry["url"])
+            if content["response"]["next_page"] is not None:
+                content = requests.get(
+                    f"https://genius.com/api/artists/{api_string}"
+                    f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
+                    f"&text_format=html%2Cmarkdown"
+                ).json()
+            else:
+                break
     return link_list
 
 
@@ -115,10 +133,10 @@ def _convert_lyrics(song_links: list[str]) -> str:
     return " ".join(data_set)
 
 
-def cloud_hook(artist_name: str) -> WordCloud or None:
+def cloud_hook(artist_name: str, album: Optional[str] = "") -> WordCloud or None:
     decode_artist = unidecode(artist_name)
     try:
-        links = build_song_links(build_artist_page(decode_artist), decode_artist)
+        links = build_song_links(build_artist_page(decode_artist), decode_artist, album)
         return _export_cloud(_convert_lyrics(links))
     except ValueError:
         return None
