@@ -120,7 +120,9 @@ def display_cloud(event=None):
     if current_cloud is not None:
         cloud_frame = window.nametowidget("cloud_frame")
         size = min(cloud_frame.winfo_width(), cloud_frame.winfo_height())
-        wc_image = current_cloud.to_image().resize((size, size), Image.Resampling.LANCZOS)
+        wc_image = current_cloud.to_image().resize(
+            (size, size), Image.Resampling.LANCZOS
+        )
         tk_image = ImageTk.PhotoImage(wc_image)
         # Remove old clouds
         if not cloud_frame.winfo_children():
