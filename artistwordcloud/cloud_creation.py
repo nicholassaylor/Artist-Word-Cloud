@@ -2,7 +2,6 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
-from rapidfuzz import fuzz
 from typing import Optional
 from unidecode import unidecode
 from wordcloud import WordCloud
@@ -28,7 +27,7 @@ def build_artist_page(artist_name: str) -> str:
 
 
 def build_song_links(
-        artist_page: str, artist_name: str, album: Optional[str] = ""
+    artist_page: str, artist_name: str, album: Optional[str] = ""
 ) -> list:
     """
     Compiles a list of song links associated to a particular artist
@@ -44,13 +43,15 @@ def build_song_links(
     if album is not None:
         try:
             album_slug = re.sub(ARTIST_RE, "", album)
-            content = requests.get(f"https://genius.com/albums/{artist_name}/{album_slug}")
+            content = requests.get(
+                f"https://genius.com/albums/{artist_name}/{album_slug}"
+            )
             soup = BeautifulSoup(content.text, "html.parser")
             song_links = soup.find_all("a", class_=ALBUM_LINK_CLASS)
             for link in song_links:
                 link_list.append(link["href"])
         except requests.exceptions.RequestException:
-            pass
+            raise LookupError()
     else:
         content = requests.get(
             f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
@@ -64,8 +65,6 @@ def build_song_links(
                 ).json()
             else:
                 break
-    if album is not None and len(link_list) == 0:
-        raise LookupError()
     return link_list
 
 
@@ -95,7 +94,7 @@ def find_api(page: str, name: str) -> str:
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
         if unidecode(re.sub(r"\W", "", name.lower())) in unidecode(
-                re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
+            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
         ):
             api_string = re.sub(r"artists/", "", candidate)
             return api_string
