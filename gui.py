@@ -71,7 +71,7 @@ def check_thread():
         ] = tk.NORMAL
 
 
-def save_cloud(artist: str):
+def save_cloud(artist: str, album: Optional[str]):
     # Avoid race conditions by copying current cloud immediately
     cloud_copy = deepcopy(current_cloud)
     try:
@@ -85,7 +85,7 @@ def save_cloud(artist: str):
                 ("WebP", "*.webp"),
             ],
             confirmoverwrite=True,
-            initialfile=f"{sanitize_filename(artist)}.png",
+            initialfile=f"{sanitize_filename(artist)}_{sanitize_filename(album)}.png",
         )
         if file_path:
             print(f"Saving file to {file_path}")
@@ -171,7 +171,7 @@ def set_up_gui() -> tk.Tk:
     save_button = ttk.Button(
         entry_frame,
         text="Save as...",
-        command=lambda: save_cloud(artist_entry.get()),
+        command=lambda: save_cloud(artist_entry.get(), album_entry.get()),
         name="save_button",
     )
     save_button["state"] = tk.DISABLED
