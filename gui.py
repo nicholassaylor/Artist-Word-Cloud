@@ -42,14 +42,14 @@ def threaded_generation(artist: str, album: Optional[str] = None):
     if next_cloud is not None:
         print("Word cloud complete!")
     else:
-        print(f"Error with artist: {artist}")
+        print(f"Error with query: {album if album else 'All songs'} by {artist}")
     return
 
 
 def check_thread():
     """
     Periodically checks thread for completion, after which it displays current word cloud
-    or gives error for invalid artist
+    or gives error for invalid artist or album
     """
     if thread.is_alive():
         window.after(100, check_thread)
@@ -63,8 +63,9 @@ def check_thread():
             ] = tk.NORMAL
         else:
             messagebox.showerror(
-                "Could not find artist",
-                "Artist could not be found on Genius, ensure that it is spelled correctly.",
+                "Could not find query",
+                "Artist and/or album could not be found on Genius, ensure that both are spelled correctly."
+                "\n\nIf the problem persists and the artist is in another script, check Genius to find the specific spelling.",
             )
         window.nametowidget("entry_frame_wrapper.entry_frame.submit_button")[
             "state"
