@@ -27,20 +27,17 @@ def build_artist_page(artist_name: str) -> str:
 
 
 def build_song_links(
-    artist_page: str, artist_name: str, album: Optional[str] = ""
+    artist_page: str, artist_name: str, album: Optional[str] = None
 ) -> list:
     """
     Compiles a list of song links associated to a particular artist
     Pulls data from Genius's API
     """
-    api_string = find_api(artist_page, artist_name)
-    if api_string == "":
-        raise ValueError()
     print(
         "Collecting links...\nDepending on the size of the artist's library, this may take a while..."
     )
     link_list = []
-    if album is not None:
+    if album:
         try:
             album_slug = re.sub(ARTIST_RE, "", album.replace(" ", "-").lower())
             artist_slug = re.sub(ARTIST_RE, "", artist_name.replace(" ", "-").lower())
@@ -54,10 +51,15 @@ def build_song_links(
         except requests.exceptions.RequestException:
             raise LookupError()
     else:
+        api_string = find_api(artist_page, artist_name)
+        if api_string == "":
+            raise ValueError()
         content = requests.get(
             f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
         ).json()
         while True:
+            for entry in content["response"]["songs"]:
+                link_list.append(entry["url"])
             if content["response"]["next_page"] is not None:
                 content = requests.get(
                     f"https://genius.com/api/artists/{api_string}"

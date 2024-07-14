@@ -33,7 +33,7 @@ class TextRedirector:
         pass  # Required for file-like object compatibility
 
 
-def threaded_generation(artist: str, album: Optional[str]):
+def threaded_generation(artist: str, album: Optional[str] = None):
     """
     Thread wrapper for cloud_hook
     """
@@ -85,7 +85,7 @@ def save_cloud(artist: str, album: Optional[str]):
                 ("WebP", "*.webp"),
             ],
             confirmoverwrite=True,
-            initialfile=f"{sanitize_filename(artist)}_{sanitize_filename(album)}.png",
+            initialfile=f"{sanitize_filename(artist)}{'_' if album else ''}{sanitize_filename(album)}.png",
         )
         if file_path:
             print(f"Saving file to {file_path}")
