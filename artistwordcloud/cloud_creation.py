@@ -9,6 +9,7 @@ from wordcloud import WordCloud
 
 from artistwordcloud.constants import (
     ARTIST_RE,
+    ALBUM_LINK_CLASS,
     CLEAN_LYRICS_RE,
     COMBINED_STOPWORDS,
     LYRIC_CLASS,
@@ -27,7 +28,7 @@ def build_artist_page(artist_name: str) -> str:
 
 
 def build_song_links(
-    artist_page: str, artist_name: str, album: Optional[str] = ""
+        artist_page: str, artist_name: str, album: Optional[str] = ""
 ) -> list:
     """
     Compiles a list of song links associated to a particular artist
@@ -39,38 +40,33 @@ def build_song_links(
     print(
         "Collecting links...\nDepending on the size of the artist's library, this may take a while..."
     )
-    content = requests.get(
-        f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
-    ).json()
     link_list = []
-    while True:
-        for entry in content["response"]["songs"]:
-            if _is_album(entry["api_path"], album):
-                link_list.append(entry["url"])
-        if content["response"]["next_page"] is not None:
-            content = requests.get(
-                f"https://genius.com/api/artists/{api_string}"
-                f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
-                f"&text_format=html%2Cmarkdown"
-            ).json()
-        else:
-            break
+    if album is not None:
+        try:
+            album_slug = re.sub(ARTIST_RE, "", album)
+            content = requests.get(f"https://genius.com/albums/{artist_name}/{album_slug}")
+            soup = BeautifulSoup(content.text, "html.parser")
+            song_links = soup.find_all("a", class_=ALBUM_LINK_CLASS)
+            for link in song_links:
+                link_list.append(link["href"])
+        except requests.exceptions.RequestException:
+            pass
+    else:
+        content = requests.get(
+            f"https://genius.com/api/artists/{api_string}/songs?page=1&per_page=20&sort=popularity&text_format=html"
+        ).json()
+        while True:
+            if content["response"]["next_page"] is not None:
+                content = requests.get(
+                    f"https://genius.com/api/artists/{api_string}"
+                    f"/songs?page={content['response']['next_page']}&per_page=20&sort=popularity"
+                    f"&text_format=html%2Cmarkdown"
+                ).json()
+            else:
+                break
     if album is not None and len(link_list) == 0:
         raise LookupError()
     return link_list
-
-
-def _is_album(api_link: str, album: str or None) -> bool:
-    if album is None:
-        return True
-    api_info = requests.get(f"https://genius.com/api{api_link}").json()
-    data = api_info["response"]["song"]["album"]
-    if data is None:
-        return False
-    print(
-        f"Ratio of {data['name'].lower()} and {album.lower()} = {fuzz.ratio(data['name'].lower(), album.lower())}"
-    )
-    return fuzz.ratio(data["name"].lower(), album.lower()) >= 65.0
 
 
 def _export_cloud(data_set: str) -> WordCloud:
@@ -99,7 +95,7 @@ def find_api(page: str, name: str) -> str:
     for candidate in candidates:
         content = requests.get(f"https://genius.com/api/{candidate}").json()
         if unidecode(re.sub(r"\W", "", name.lower())) in unidecode(
-            re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
+                re.sub(r"\W", "", content["response"]["artist"]["name"].lower())
         ):
             api_string = re.sub(r"artists/", "", candidate)
             return api_string

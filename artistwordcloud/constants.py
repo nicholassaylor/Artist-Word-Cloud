@@ -18,6 +18,7 @@ for lang in stopwords.fileids():
     combined_stopwords.update(lang_stopwords)
 
 COMBINED_STOPWORDS = combined_stopwords
+ALBUM_LINK_CLASS = "u-display_block"
 LYRIC_CLASS = "Lyrics__Container-sc-1ynbvzw-1 kUgSbL"
 CLEAN_LYRICS_RE = compile(r"(\[[^\[\]]*])|((<[^>]*>)+)|([,.?!()\n])")
 ARTIST_RE = compile(r"[^a-z0-9-]")
