@@ -8,6 +8,7 @@ from pathvalidate import sanitize_filename
 from PIL import ImageTk, Image
 from tkinter import ttk, messagebox, filedialog
 from ttkthemes import ThemedTk
+from typing import Optional
 from wordcloud import WordCloud
 
 
@@ -32,12 +33,12 @@ class TextRedirector:
         pass  # Required for file-like object compatibility
 
 
-def threaded_generation(artist: str):
+def threaded_generation(artist: str, album: Optional[str]):
     """
     Thread wrapper for cloud_hook
     """
     global next_cloud
-    next_cloud = cloud_hook(artist)
+    next_cloud = cloud_hook(artist, album)
     if next_cloud is not None:
         print("Word cloud complete!")
     else:
@@ -96,13 +97,13 @@ def save_cloud(artist: str):
         messagebox.showerror("Error Saving File", "File could not be saved.")
 
 
-def get_cloud(artist: str):
+def get_cloud(artist: str, album: Optional[str]):
     """
     Initiates thread for building word cloud
     Calls check_queue on a delay to retrieve word cloud
     """
     global thread
-    thread = threading.Thread(target=threaded_generation, args=(artist,))
+    thread = threading.Thread(target=threaded_generation, args=(artist, album))
     thread.start()
     window.nametowidget("entry_frame_wrapper.entry_frame.submit_button")["state"] = (
         tk.DISABLED
@@ -119,7 +120,7 @@ def display_cloud(event=None):
     if current_cloud is not None:
         cloud_frame = window.nametowidget("cloud_frame")
         size = min(cloud_frame.winfo_width(), cloud_frame.winfo_height())
-        wc_image = current_cloud.to_image().resize((size, size), Image.LANCZOS)
+        wc_image = current_cloud.to_image().resize((size, size), Image.Resampling.LANCZOS)
         tk_image = ImageTk.PhotoImage(wc_image)
         # Remove old clouds
         if not cloud_frame.winfo_children():
@@ -144,6 +145,10 @@ def set_up_gui() -> tk.Tk:
     # Create Frames
     text_frame = ttk.Frame(root)
     text_frame.pack(side=tk.BOTTOM, fill=tk.X)
+    album_frame_wrapper = ttk.Frame(root, name="album_frame_wrapper")
+    album_frame_wrapper.pack(side=tk.BOTTOM, fill=tk.X)
+    album_frame = ttk.Frame(album_frame_wrapper, name="album_frame")
+    album_frame.pack(side=tk.BOTTOM, anchor=tk.CENTER)
     entry_frame_wrapper = ttk.Frame(root, name="entry_frame_wrapper")
     entry_frame_wrapper.pack(side=tk.BOTTOM, fill=tk.X)
     entry_frame = ttk.Frame(entry_frame_wrapper, name="entry_frame")
@@ -153,12 +158,14 @@ def set_up_gui() -> tk.Tk:
     # For changing size of cloud
     cloud_frame.bind("<Configure>", display_cloud)
     # Create content
+    album_entry_label = ttk.Label(album_frame, text="Enter an album:")
+    album_entry = ttk.Entry(album_frame, width=30)
     artist_entry_label = ttk.Label(entry_frame, text="Enter an artist:")
     artist_entry = ttk.Entry(entry_frame, width=30)
     submit_button = ttk.Button(
         entry_frame,
         text="Submit",
-        command=lambda: get_cloud(artist_entry.get()),
+        command=lambda: get_cloud(artist_entry.get(), album_entry.get()),
         name="submit_button",
     )
     save_button = ttk.Button(
@@ -170,6 +177,8 @@ def set_up_gui() -> tk.Tk:
     save_button["state"] = tk.DISABLED
     text_output = tk.Text(text_frame, wrap=tk.WORD, height=6, width=75)
     # Fill frames
+    album_entry_label.pack(side=tk.LEFT, padx=2)
+    album_entry.pack(side=tk.LEFT)
     artist_entry_label.pack(side=tk.LEFT, padx=2)
     artist_entry.pack(side=tk.LEFT)
     submit_button.pack(side=tk.LEFT, padx=5)

@@ -42,9 +42,10 @@ def build_song_links(
     link_list = []
     if album is not None:
         try:
-            album_slug = re.sub(ARTIST_RE, "", album)
+            album_slug = re.sub(ARTIST_RE, "", album.replace(" ", "-").lower())
+            artist_slug = re.sub(ARTIST_RE, "", artist_name.replace(" ", "-").lower())
             content = requests.get(
-                f"https://genius.com/albums/{artist_name}/{album_slug}"
+                f"https://genius.com/albums/{artist_slug}/{album_slug}"
             )
             soup = BeautifulSoup(content.text, "html.parser")
             song_links = soup.find_all("a", class_=ALBUM_LINK_CLASS)
