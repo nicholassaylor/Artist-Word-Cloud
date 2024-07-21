@@ -166,13 +166,13 @@ def set_up_gui() -> tk.Tk:
     album_entry_label = ttk.Label(entry_frame, text="(Optional) Enter an album:")
     album_entry = ttk.Entry(entry_frame, width=30)
     submit_button = ttk.Button(
-        button_frame,
+        entry_frame,
         text="Submit",
         command=lambda: get_cloud(artist_entry.get(), album_entry.get()),
         name="submit_button",
     )
     save_button = ttk.Button(
-        button_frame,
+        entry_frame,
         text="Save as...",
         command=lambda: save_cloud(artist_entry.get(), album_entry.get()),
         name="save_button",
