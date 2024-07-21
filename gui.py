@@ -58,7 +58,7 @@ def check_thread():
         if next_cloud:
             current_cloud = next_cloud
             display_cloud()
-            window.nametowidget("entry_frame_wrapper.entry_frame.save_button")[
+            window.nametowidget("button_frame_wrapper.button_frame.save_button")[
                 "state"
             ] = tk.NORMAL
         else:
@@ -67,7 +67,7 @@ def check_thread():
                 "Artist and/or album could not be found on Genius, ensure that both are spelled correctly."
                 "\n\nIf the problem persists and the artist is in another script, check Genius to find the specific spelling.",
             )
-        window.nametowidget("entry_frame_wrapper.entry_frame.submit_button")[
+        window.nametowidget("button_frame_wrapper.button_frame.submit_button")[
             "state"
         ] = tk.NORMAL
 
@@ -106,7 +106,7 @@ def get_cloud(artist: str, album: Optional[str]):
     global thread
     thread = threading.Thread(target=threaded_generation, args=(artist, album))
     thread.start()
-    window.nametowidget("entry_frame_wrapper.entry_frame.submit_button")["state"] = (
+    window.nametowidget("button_frame_wrapper.button_frame.submit_button")["state"] = (
         tk.DISABLED
     )
     window.after(1000, check_thread)
@@ -166,13 +166,13 @@ def set_up_gui() -> tk.Tk:
     album_entry_label = ttk.Label(entry_frame, text="(Optional) Enter an album:")
     album_entry = ttk.Entry(entry_frame, width=30)
     submit_button = ttk.Button(
-        entry_frame,
+        button_frame,
         text="Submit",
         command=lambda: get_cloud(artist_entry.get(), album_entry.get()),
         name="submit_button",
     )
     save_button = ttk.Button(
-        entry_frame,
+        button_frame,
         text="Save as...",
         command=lambda: save_cloud(artist_entry.get(), album_entry.get()),
         name="save_button",
