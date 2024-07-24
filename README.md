@@ -37,13 +37,12 @@ Word clouds can either be in the shape of a particular graphic or simply fill a 
    * Use `pip install -r requirements.txt` to install the required python packages
 3. Running the Code
    * **Command Line Version** 
-     * Typing `python.exe artistwordcloud/artistwordcloud.py` in a terminal opened in the project folder or opening the file directly in Python will run the command line interface
-     * Artists may be specified through the CLI using the following format:  
-     `python.exe artistwordcloud/artistwordcloud.py ["ARTIST_NAME" ... ]`
+     * Typing `python.exe cli.py` in a terminal opened in the project folder or opening the file directly in Python will run the command line interface
+     * Artists may be specified through the CLI using the following format: `python.exe cli.py ["ARTIST_NAME" ... ]`
      * Currently, albums cannot be specified through command line arguments
      * Output will be in the form of a file named `<artist-name>.png` in the folder the program was run
    * **Graphical Interface Version**
-     * Typing `python.exe artistwordcloud/gui.py` in a terminal opened in the project folder or opening the file directly in Python will run the graphical interface to interact with
+     * Typing `python.exe gui.py` in a terminal opened in the project folder or opening the file directly in Python will run the graphical interface to interact with
      * Specifying artists through the command line is not supported
      * You will be prompted to choose the location of your saved files
 
