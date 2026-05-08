@@ -1,3 +1,15 @@
+# Notice: Due to a change in how Genius allows access to their API, this project is deprecated until further notice!!!
+
+
+
+
+
+
+
+
+
+
+
 # Artist Word Cloud
 This program pulls lyrics from [Genius](https://genius.com/) for a particular artist and creates a word cloud with their lyrics.
 A word cloud is a visual representation of the frequency of words within a particular work, with more frequent words being larger.
